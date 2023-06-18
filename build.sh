@@ -29,8 +29,10 @@ venv() {
 container() {
     source .env || echo ".env file read error, continuing anyway ..."
     export BUILDKIT_PROGRESS=plain && docker build -t polyai .
+
+    mkdir -p "$POLYAI_SERV_CACHE"
     docker run -it --gpus all \
-        -v $POLYAI_SERV_CACHE:/home/user/.cache/ \
+        -v "$POLYAI_SERV_CACHE:/home/user/.cache/" \
         -p $POLYAI_SERV_PORT:8080 \
         polyai
 }
