@@ -1,9 +1,7 @@
 import time
-
-import polyai
-from polyai import engine
-
 import pylogg
+from polyai import engine, error
+
 log = pylogg.New("polyai")
 
 
@@ -19,7 +17,7 @@ class ChatCompletion(engine.APIEngine):
             try:
                 return super().create(*args, **kwargs)
                 
-            except TryAgain as e:
+            except error.TryAgain as e:
                 if timeout is not None and time.time() > start + timeout:
                     raise
 

@@ -16,9 +16,9 @@ class PolyAIResponse:
 
     @property
     def organization(self) -> str:
-        return self._headers.get("OpenAI-Organization")
+        return self._headers.get("PolyAI-Organization")
 
     @property
     def response_ms(self) -> int:
-        h = self._headers.get("Openai-Processing-Ms")
+        h = self._headers.get("Polyai-Processing-Ms")
         return None if h is None else round(float(h))
