@@ -44,13 +44,11 @@ RUN pip install -vv torch==2.0.1 --extra-index-url https://download.pytorch.org/
 ## --------------------------------------------------------------------------------------
 
 # Install application
-COPY polyai polyai
+RUN git clone --depth=1 https://github.com/qwopqwop200/GPTQ-for-LLaMa.git
 COPY requirements.txt requirements.txt
 RUN  pip install -r requirements.txt
 
-RUN git clone --depth=1 https://github.com/qwopqwop200/GPTQ-for-LLaMa.git
+COPY polyai polyai
 
 ENTRYPOINT ["/bin/python", "polyai/__main__.py", "server"]
 # ENTRYPOINT ["/bin/bash", "-i"]
-
-
