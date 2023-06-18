@@ -3,6 +3,7 @@ from flask import (
     abort, session, redirect,
 )
 
+__version__ = "1.0"
 bp = Blueprint("apiv1", __name__, url_prefix="/v1")
 
 
@@ -16,7 +17,7 @@ def not_found(error):
 
 @bp.route('/', methods=["GET"])
 def index():
-    return "Welcome to API version 1.0"
+    return "Welcome to PolyAI API version 1.0"
 
 @bp.route('/<int:task_id>', methods = ['POST'])
 def update_task(task_id):
