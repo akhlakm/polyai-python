@@ -1,7 +1,4 @@
-import time
-
-import polyai
-from polyai import util, error, requestor
+from polyai.api import requestor
 
 MAX_TIMEOUT = 20
 
@@ -41,16 +38,16 @@ class APIEngine:
         stream, headers, timeout, req, url, params = cls.__prepare_create_request(
             api_key, api_base, organization, **params)
 
-        response, _, api_key = requestor.request("post", url,
+        response, _, api_key = req.request("post", url,
             params=params,
             headers=headers,
             stream=stream,
             request_id=request_id,
-            request_timeout=request_timeout,
+            request_timeout=timeout,
         )
 
         if stream:
-            return line for line in response
+            return (line for line in response)
         else:
             return response
 

@@ -9,9 +9,9 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 import requests
 import pylogg
 
-import polyai
-from polyai import util, error
-from polyai.response import PolyAIResponse
+import polyai.api
+from polyai.api import util, error
+from polyai.api.response import PolyAIResponse
 
 MAX_CONNECTION_RETRIES = 2
 MAX_SESSION_LIFETIME_SECS = 180
@@ -23,11 +23,11 @@ log = pylogg.New("polyai")
 _thread_context = threading.local()
 
 def _make_session() -> requests.Session:
-    if polyai.session:
-        if isinstance(polyai.session, requests.Session):
-            return polyai.session
+    if polyai.api.session:
+        if isinstance(polyai.api.session, requests.Session):
+            return polyai.api.session
         else:
-            return polyai.session()
+            return polyai.api.session()
 
     s = requests.Session()
     s.mount(
@@ -109,7 +109,7 @@ class APIRequestor:
 
     def request_headers(self, method: str, extra : dict, request_id: str) -> dict:
         user_agent = "PolyAI/v1 PythonBindings/%s" % (polyai.__version__,)
-        if polyai.app_info:
+        if polyai.api.app_info:
             user_agent += " " + format_app_info(polyai.app_info)
 
         uname_without_node = " ".join(
@@ -124,7 +124,7 @@ class APIRequestor:
             "publisher": "polyai",
             "uname": uname_without_node,
         }
-        if polyai.app_info:
+        if polyai.api.app_info:
             ua["application"] = polyai.app_info
 
         headers = {
@@ -139,9 +139,6 @@ class APIRequestor:
 
         if request_id is not None:
             headers["X-Request-Id"] = request_id
-
-        if polyai.debug:
-            headers["PolyAI-Debug"] = "true"
 
         headers.update(extra)
 

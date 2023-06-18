@@ -1,15 +1,7 @@
 class PolyAIError(Exception):
-    def __init__(
-        self,
-        message=None,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
-        code=None,
-    ):
-        super(OpenAIError, self).__init__(message)
-
+    def __init__(self, message=None, http_body=None,
+                 http_status=None, json_body=None, headers=None,
+                 code=None):
         self._message = message
         self.http_body = http_body
         self.http_status = http_status
@@ -50,16 +42,9 @@ class Timeout(PolyAIError):
     pass
 
 class APIConnectionError(PolyAIError):
-    def __init__(
-        self,
-        message,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
-        code=None,
-        should_retry=False,
-    ):
+    def __init__(self, message, http_body=None, http_status=None,
+                 json_body=None, headers=None, code=None,
+                 should_retry=False):
         super(APIConnectionError, self).__init__(
             message, http_body, http_status, json_body, headers, code
         )
@@ -67,16 +52,9 @@ class APIConnectionError(PolyAIError):
 
 
 class InvalidRequestError(PolyAIError):
-    def __init__(
-        self,
-        message,
-        param,
-        code=None,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
-    ):
+    def __init__(self, message, param, code=None, http_body=None,
+                 http_status=None, json_body=None, headers=None):
+
         super(InvalidRequestError, self).__init__(
             message, http_body, http_status, json_body, headers, code
         )

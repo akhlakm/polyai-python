@@ -1,6 +1,6 @@
 import time
 import pylogg
-from polyai import engine, error
+from polyai.api import engine, error
 
 log = pylogg.New("polyai")
 

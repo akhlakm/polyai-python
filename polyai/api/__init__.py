@@ -1,6 +1,8 @@
 import os
+from .chat_completion import Completion
+from .chat_completion import ChatCompletion
 
-__version__ = "2023.06.17a1"
+__version__ = "2023.06.18r1"
 __author__ = "Akhlak Mahmood"
 
 api_key = os.environ.get("POLYAI_API_KEY")
