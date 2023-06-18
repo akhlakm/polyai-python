@@ -17,5 +17,15 @@ tag() {
     git tag v$version && git push origin v$version
 }
 
+venv() {
+    if conda info --envs | grep -q $(basename $PWD); then 
+        conda activate $(basename $PWD)
+    else
+        conda create -n $(basename $PWD) python=3.10 -c conda-forge
+        conda activate $(basename $PWD)
+    fi
+}
+
+
 "$@"
 

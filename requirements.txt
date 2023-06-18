@@ -1,2 +1,3 @@
 requests
+flask
 git+https://github.com/akhlakm/python-logg.git

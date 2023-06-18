@@ -19,6 +19,7 @@ classifiers = [
 dependencies = [
   "pylogg @ git+https://github.com/akhlakm/python-logg.git",
   "requests",
+  "flask",
 ]
 
 [project.urls]
@@ -26,11 +27,12 @@ dependencies = [
 "Bug Tracker" = "https://github.com/akhlakm/polyai-python/issues"
 
 [project.scripts]
+polyai = "polyai_server:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["polyai"]
+packages = ["polyai", "polyai_server"]
 
