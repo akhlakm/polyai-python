@@ -6,6 +6,7 @@ import pylogg as log
 from .app import run
 
 model = None
+token = None
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="PolyAI Server (v%s)" %polyai.__version__)
