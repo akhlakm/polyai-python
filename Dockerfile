@@ -46,4 +46,5 @@ COPY polyai polyai
 COPY requirements.txt polyai/requirements.txt
 RUN  pip install -r polyai/requirements.txt
 
+ENV PYTHONPATH=/home/user
 ENTRYPOINT ["/bin/python", "polyai/__main__.py", "server"]
