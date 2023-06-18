@@ -6,8 +6,6 @@ import polyai.server
 
 log = pylogg.New("polyai")
 
-MODELDIR="/home/user/models/TheBloke_Wizard-Vicuna-13B-Uncensored-GPTQ/"
-
 
 # import gptq
 gptq_repo = os.environ.get("POLYAI_GPTQ_DIR", "GPTQ-for-LLaMa")
@@ -36,10 +34,10 @@ def init_gptq_model(modelname, use_fast=False):
     unload_model()
     t1 = log.trace("Loading GPTQ model: {}", modelname)
 
-    mpath = os.path.join(MODELDIR, modelname)
-    polyai.server.model = gptq.load_quant(MODELDIR, mpath, 4, 128, fused_mlp=True)
+    modeldir = os.path.dirname(modelname)
+    polyai.server.model = gptq.load_quant(modeldir, modelname, 4, 128, fused_mlp=True)
     polyai.server.model.to(gptq.DEV)
-    polyai.server.token = gptq.AutoTokenizer.from_pretrained(MODELDIR, use_fast=use_fast)
+    polyai.server.token = gptq.AutoTokenizer.from_pretrained(modeldir, use_fast=use_fast)
 
     t1.done("Model loaded: {}", modelname)
 

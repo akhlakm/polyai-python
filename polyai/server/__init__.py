@@ -37,14 +37,19 @@ def main():
     log.setConsoleTimes(show=True)
 
     if args.cmd == "server":
-        if args.model is not None:
-            models.MODELDIR = os.environ.get("POLYAI_MODEL_DIR", None)
-            if models.MODELDIR is None:
-                raise RuntimeError("Cannot detect models directory.")
-            models.init_gptq_model(args.model)
+        if args.model is None:
+            modelpath = os.path.join("models", os.environ.get("POLYAI_MODEL_PATH"))
+            if os.path.isfile(modelpath):
+                args.model = modelpath
 
-        log.info("Running server on host={}:{}", args.host, args.port)
-        app.run(args.host, args.port, args.debug)
+        if args.model is not None:
+            models.init_gptq_model(args.model)
+        else:
+            log.error("No valid modelpath specified. Models can specified using the --model argument.")
+            log.error("Alternatively, set the POLYAI_MODEL_PATH relative to ./models/ directory.")
+
+        log.info("Running server on {}:{}", args.host, args.port)
+        app.run(args.host, args.port, debug=False)
 
     log.close()
     return 0
