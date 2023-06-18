@@ -213,6 +213,10 @@ def connect():
     return sess
 
 
+def engine():
+    connect()
+    return eng
+
 def disconnect():
     global ssh, eng, sess
     if sess is not None:
