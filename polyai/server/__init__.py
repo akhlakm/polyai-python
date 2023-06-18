@@ -2,7 +2,7 @@ import sys
 import argparse
 
 import pylogg as log
-from polyai.server import app
+from .app import run
 
 model = None
 
@@ -41,7 +41,7 @@ def main():
         load_model(args.model)
 
     log.info("Running server on host={}:{}", args.host, args.port)
-    app.run(args.host, args.port, args.debug)
+    run(args.host, args.port, args.debug)
 
     return 0
 
