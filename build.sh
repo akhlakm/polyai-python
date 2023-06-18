@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
 version() {
-    # print current version
     grep version pyproject.toml
-    read -p "new version string? " NEW_VERSION
-    sed -i "s/\(version = \"\)[^\"]*\"/\1$NEW_VERSION\"/" pyproject.toml
-    sed -i "s/\(__version__ = \"\)[^\"]*\"/\1$NEW_VERSION\"/" polyai/__init__.py
-    # confirm
+    NEW_VERSION=$(sed -n 's/__version__ = "\(.*\)"/\1/p' polyai/__init__.py)
+    sed -i '' "s/\(version = \"\)[^\"]*\"/\1$NEW_VERSION\"/" pyproject.toml
     grep version pyproject.toml
 }
 
