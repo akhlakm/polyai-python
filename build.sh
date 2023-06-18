@@ -26,7 +26,7 @@ venv() {
     fi
 }
 
-docker() {
+container() {
     source .env || echo ".env file read error, continuing anyway ..."
     export BUILDKIT_PROGRESS=plain && docker build -t polyai .
     docker run -it --gpus all \
