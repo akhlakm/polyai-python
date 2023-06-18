@@ -42,9 +42,14 @@ RUN pip install -vv torch==2.0.1 --extra-index-url https://download.pytorch.org/
 
 ## --------------------------------------------------------------------------------------
 # Install application
+RUN python -m pip install pip -U
 COPY polyai polyai
 COPY requirements.txt polyai/requirements.txt
 RUN  pip install -r polyai/requirements.txt
 
 ENV PYTHONPATH=/home/user
+
 ENTRYPOINT ["/bin/python", "polyai/__main__.py", "server"]
+# ENTRYPOINT ["/bin/bash", "-i"]
+
+
