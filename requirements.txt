@@ -7,3 +7,13 @@ psycopg2-binary
 sshtunnel
 python-dotenv
 pyenv-encrypt
+safetensors
+datasets
+sentencepiece
+git+https://github.com/huggingface/transformers
+accelerate
+triton
+texttable
+toml
+numpy
+protobuf

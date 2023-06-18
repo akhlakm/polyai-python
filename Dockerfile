@@ -44,7 +44,9 @@ RUN pip install -vv torch==2.0.1 --extra-index-url https://download.pytorch.org/
 ## --------------------------------------------------------------------------------------
 
 # Install application
+RUN pip install transformers datasets evaluate peft safetensors
 RUN git clone --depth=1 https://github.com/qwopqwop200/GPTQ-for-LLaMa.git
+# RUN  pip install -r GPTQ-for-LLaMa/requirements.txt
 COPY requirements.txt requirements.txt
 RUN  pip install -r requirements.txt
 
