@@ -1,9 +1,12 @@
+import os
 import sys
 import argparse
+import pylogg as log
 
 import polyai
-import pylogg as log
-from .app import run
+from polyai.server import models
+from polyai.server import app
+
 
 model = None
 token = None
@@ -25,13 +28,6 @@ def parse_arguments():
     return args
 
 
-def load_model(modelname):
-    t1 = log.trace("Loading model {}", modelname)
-    global model
-    model = modelname #@todo
-    t1.done("Model {} loaded.", modelname)
-
-
 def main():
     args = parse_arguments()
     if args.debug:
@@ -42,10 +38,13 @@ def main():
 
     if args.cmd == "server":
         if args.model is not None:
-            load_model(args.model)
+            models.MODELDIR = os.environ.get("POLYAI_MODEL_DIR", None)
+            if models.MODELDIR is None:
+                raise RuntimeError("Cannot detect models directory.")
+            models.init_gptq_model(args.model)
 
         log.info("Running server on host={}:{}", args.host, args.port)
-        run(args.host, args.port, args.debug)
+        app.run(args.host, args.port, args.debug)
 
     log.close()
     return 0
