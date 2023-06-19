@@ -4,9 +4,39 @@ from flask import (
 )
 
 import polyai.server
+from polyai.server import models
 
 __version__ = "1.0"
-bp = Blueprint("apiv1", __name__, url_prefix="/v1")
+bp = Blueprint("apiv1", __name__)
+
+def choices_v1(response, finish_reason):
+    return {
+        'message': {
+            'role': 'assistant',
+            'content': response,
+        },
+        'finish_reason': finish_reason
+    }
+
+def reponse_v1(idstr : str, object : str, model : str,
+               prompt_tok : int, compl_tok : int, choices : list):
+    
+    # set choice indices
+    for i, ch in enumerate(choices):
+        choices[i]['index'] = 0
+
+    return {
+        'id': idstr,
+        'object': object,
+        'created': 1677649420,
+        'model': model,
+        'usage': {
+            'prompt_tokens': prompt_tok,
+            'completion_tokens': compl_tok,
+            'total_tokens': prompt_tok + compl_tok
+        },
+        'choices': choices
+    }
 
 
 @bp.errorhandler(400)
@@ -19,22 +49,19 @@ def not_found(error):
 
 @bp.route('/', methods=["GET"])
 def index():
-    return f"Welcome to PolyAI API version 1.0. Current model: {polyai.server.model}"
+    message = f"Welcome to PolyAI API version 1.0. Current model: {polyai.server.model}"
+    message += "Please send a post request to talk to the LLM.\n"
+    message += 'Shell example :\n\n\tcurl -X POST http://localhost:8080/api/chat/completions -d "hello"\n'
+    message += "\nUse the 'USER: <prompt> ASSISTANT: ' format.\n\n"
 
-@bp.route('/<int:task_id>', methods = ['POST'])
-def update_task(task_id):
-    task = []
-    if len(task) == 0:
-        abort(404)
-    if not request.json:
+    return message
+
+@bp.route('/chat/completions', methods = ['POST'])
+def chat_completions():
+    message = request.get_data(as_text=True)
+    if not message:
         abort(400)
-    if 'title' in request.json and type(request.json['title']) != str:
-        abort(400)
-    if 'description' in request.json and type(request.json['description']) is not str:
-        abort(400)
-    if 'done' in request.json and type(request.json['done']) is not bool:
-        abort(400)
-    task[0]['title'] = request.json.get('title', task[0]['title'])
-    task[0]['description'] = request.json.get('description', task[0]['description'])
-    task[0]['done'] = request.json.get('done', task[0]['done'])
-    return jsonify( { 'task': [] } )
+    else:
+        response = models.get_gptq_response(message)
+        ch = choices_v1(response, 'stop')
+        return jsonify(reponse_v1("test", 'chat.completions', 'test_model', -1, -1, [ch]))
