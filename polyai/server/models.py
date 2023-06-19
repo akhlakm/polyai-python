@@ -4,7 +4,7 @@ import sys
 import pylogg
 import polyai.server
 
-log = pylogg.New("polyai")
+log = pylogg.New("llm")
 
 
 # import gptq
@@ -54,7 +54,9 @@ def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, min_length=10, *
     t1 = log.trace("Getting response for: {}", prompt)
     input_ids = polyai.server.token.encode(prompt, return_tensors="pt").to(gptq.DEV)
 
-    prompt_tok = len(input_ids)
+    prompt_tok = 0
+    for i in input_ids:
+        prompt_tok += len(i)
 
     with gptq.torch.no_grad():
         generated_ids = polyai.server.model.generate(input_ids,
@@ -62,8 +64,12 @@ def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, min_length=10, *
             max_length=maxlen, top_p=top_p,
             temperature=temp)
 
-    tokens = [el.item() for el in generated_ids[0]]
-    compl_tok = len(tokens)
-    output = polyai.server.token.decode(tokens)
-    t1.done("Response: {}", output)
-    return output, prompt_tok, compl_tok
+    compl_tok = 0
+    outputs = []
+    for gen in generated_ids:
+        compl_tok += len(gen)
+        tokens = [el.item() for el in gen]
+        outputs.append(polyai.server.token.decode(tokens))
+
+    t1.done("Response: {}", outputs)
+    return outputs, prompt_tok, compl_tok
