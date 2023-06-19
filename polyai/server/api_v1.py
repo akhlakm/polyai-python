@@ -116,7 +116,7 @@ def response_for_json(js : dict):
     # remove the start end <s> tokens
     # and strip the input prompt
     for i in range(len(responses)):
-        responses[i] = responses[i][4:-4].replace(message, "", 1)
+        responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
 
     return responses, p_tok, c_tok
 
