@@ -66,12 +66,6 @@ def response_for_json(js : dict):
     min_tokens = js.get("min_tokens")
     top_p = js.get("top_p")
 
-    if messages is None:
-        abort(400, "list of messages not provided")
-
-    if not type(messages) == list:
-        abort(400, "messages must be a list")
-
     inputs = {}
     try:
         if temperature:
@@ -86,16 +80,32 @@ def response_for_json(js : dict):
         abort(400, "invalid model parameter type")
 
     if prompt:
-        message = prompt
+        if 'ASSISTANT:' in prompt:
+            message = prompt
+        else:
+            message = f"USER: {prompt} ASSISTANT:"
+
     else:
-        message = ""
         # messasges = [ {'role': '', content: ''}]
+        if messages is None:
+            abort(400, "list of messages not provided")
+
+        if not type(messages) == list:
+            abort(400, "messages must be a list")
+
+        # build the model prompt
+        message = ""
         for m in messages:
+            if not type(m) == dict:
+                abort(400, "message element must be of format {'role': "", 'content': ""}")
+
             role = m.get('role')
             cont = m.get('content')
             if role is None or cont is None:
-                abort(400, f"bad message format: {m}")
+                abort(400, "message element must be of format {'role': "", 'content': ""}")
+
             message += f"{str(role).upper()}: {str(cont)}\n"
+
         # add the final string for assistant
         message += "ASSISTANT:"
 
@@ -106,7 +116,7 @@ def response_for_json(js : dict):
     # remove the start end <s> tokens
     # and strip the input prompt
     for i in range(len(responses)):
-        responses[i] = responses[i][4:-4].replace(message, count=1)
+        responses[i] = responses[i][4:-4].replace(message, "", 1)
 
     return responses, p_tok, c_tok
 
@@ -128,7 +138,7 @@ def response_for_text(text : str):
     # remove the start end <s> tokens
     # and strip the input prompt
     for i in range(len(responses)):
-        responses[i] = responses[i][4:-4].replace(message, count=1)
+        responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
 
     return responses, p_tok, c_tok
 
@@ -166,11 +176,13 @@ def make_choice_dict(response, finish_reason):
 
 @bp.errorhandler(400)
 def bad_request(error):
-    log.info(error)
-    return make_response(str(error), 400)
+    errstr = str(error)
+    log.info(errstr)
+    return make_response(errstr, 400)
 
 
 @bp.errorhandler(404)
 def not_found(error):
-    log.info(error)
-    return make_response(str(error), 404)
+    errstr = str(error)
+    log.info(errstr)
+    return make_response(errstr, 404)
