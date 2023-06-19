@@ -1,7 +1,7 @@
 {
     "messages": [
-        { "role": "user", "content": "hello"},
-        { "role": "assistant", "content": "Hi"},
-        { "role": "user", "content": "Who are you?"}
+        { "role": "user", "content": "Identify the nouns in the following sentence. 'Washington DC is the capital of USA.'"},
+        { "role": "assistant", "content": "Washington DC, USA"},
+        { "role": "user", "content": "Identify the nouns in the following sentence. 'The Himalayas are located in the border of Nepal and India.'"}
     ]
 }
