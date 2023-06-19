@@ -71,5 +71,7 @@ def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, minlen=10, **kwa
         tokens = [el.item() for el in gen]
         outputs.append(polyai.server.token.decode(tokens))
 
+    compl_tok -= prompt_tok
+
     t1.done("Response: {}", outputs)
     return outputs, prompt_tok, compl_tok
