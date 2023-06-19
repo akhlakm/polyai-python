@@ -50,7 +50,7 @@ def init_hf_model(pipeline_type, modelname):
     t1.done("Model loaded: {}", modelname)
 
 
-def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, min_length=10, **kwargs):
+def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, minlen=10, **kwargs):
     t1 = log.trace("Getting response for: {}", prompt)
     input_ids = polyai.server.token.encode(prompt, return_tensors="pt").to(gptq.DEV)
 
@@ -60,7 +60,7 @@ def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, min_length=10, *
 
     with gptq.torch.no_grad():
         generated_ids = polyai.server.model.generate(input_ids,
-            do_sample=True, min_length=min_length,
+            do_sample=True, min_length=minlen,
             max_length=maxlen, top_p=top_p,
             temperature=temp)
 
