@@ -36,5 +36,13 @@ container() {
         polyai
 }
 
+apitest() {
+    [[ -f request.json ]] || exit 100
+    curl    --header "Content-Type: application/json" \
+            --data @request.json \
+            http://localhost:8080/api/chat/completions
+    echo 
+}
+
 "$@"
 
