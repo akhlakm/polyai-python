@@ -22,7 +22,8 @@ def chat_completions():
         abort(400, "max context length exceeded")
 
     if request.is_json:
-        resp = response_for_json(request.get_json())
+        message = request.get_json()
+        resp = response_for_json(message)
     else:
         # if not json formatted, create a simple prompt.
         message = request.get_data(as_text=True)
@@ -33,8 +34,9 @@ def chat_completions():
 
     responses, p_tok, c_tok = resp
     ch = [make_choice_dict(r, 'stop') for r in responses]
-    return jsonify(make_response_dict("test", 'chat.completions', 'test_model',
-                            prompt_tok=p_tok, compl_tok=c_tok, choices=ch))
+    respObj = make_response_dict("test", 'chat.completions', 'test_model',
+                            prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
+    return jsonify(respObj)
 
 
 @bp.route('/', methods=["GET"])
@@ -47,7 +49,67 @@ def index():
 
 
 def response_for_json(js : dict):
-    abort(400, "not implemented")
+    """
+    Construct a instruct prompt with the request json.
+
+    Returns:
+        A tuple with the model's generated text,
+        number of prompt tokens, and the number of completion tokens.
+        The generated text is stripped off the BOS, EOS tokens
+        and the request text.
+    """
+    log.trace("JSON request: {}", js)
+    messages = js.get("messages")
+    prompt = js.get("prompt")
+    temperature = js.get("temperature")
+    max_tokens = js.get("max_tokens")
+    min_tokens = js.get("min_tokens")
+    top_p = js.get("top_p")
+
+    if messages is None:
+        abort(400, "list of messages not provided")
+
+    if not type(messages) == list:
+        abort(400, "messages must be a list")
+
+    inputs = {}
+    try:
+        if temperature:
+            inputs['temp'] = float(temperature)
+        if max_tokens:
+            inputs['maxlen'] = int(max_tokens)
+        if min_tokens:
+            inputs['minlen'] = int(min_tokens)
+        if top_p:
+            inputs['top_p'] = float(top_p)
+    except:
+        abort(400, "invalid model parameter type")
+
+    if prompt:
+        message = prompt
+    else:
+        message = ""
+        # messasges = [ {'role': '', content: ''}]
+        for m in messages:
+            role = m.get('role')
+            cont = m.get('content')
+            if role is None or cont is None:
+                abort(400, f"bad message format: {m}")
+            message += f"{str(role).upper()}: {str(cont)}\n"
+        # add the final string for assistant
+        message += "ASSISTANT:"
+
+    inputs['prompt'] = message
+
+    responses, p_tok, c_tok = models.get_gptq_response(**inputs)
+
+    # remove the start end <s> tokens
+    # and strip the input prompt
+    for i in range(len(responses)):
+        responses[i] = responses[i][4:-4].replace(message, count=1)
+
+    return responses, p_tok, c_tok
+
 
 def response_for_text(text : str):
     """
