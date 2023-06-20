@@ -42,8 +42,7 @@ def _make_session() -> requests.Session:
 class APIRequestor:
     def __init__(self, key=None, api_base=None, organization=None):
         self.api_key = key or util.default_api_key()
-        self.api_base = api_base or polyai.api_base
-        self.organization = organization or polyai.organization
+        self.api_base = api_base or polyai.api.api_base
 
     def request(self, method, url, params=None, headers=None,
                 files=None, stream: bool = False, request_id = None,
@@ -132,9 +131,6 @@ class APIRequestor:
             "User-Agent": user_agent,
             "Api-Key": self.api_key
         }
-
-        if self.organization:
-            headers["PolyAI-Organization"] = self.organization
 
         if request_id is not None:
             headers["X-Request-Id"] = request_id
