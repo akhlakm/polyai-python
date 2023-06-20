@@ -51,6 +51,7 @@ COPY requirements.txt requirements.txt
 RUN  pip install -r requirements.txt
 
 COPY polyai polyai
+COPY .env .env
 
 ENTRYPOINT ["/bin/python", "polyai/__main__.py", "server"]
 # ENTRYPOINT ["/bin/bash", "-i"]
