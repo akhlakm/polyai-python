@@ -124,6 +124,7 @@ def response_for_json(js : dict):
 
         # build the model prompt from the messages
         message = ""
+        instruction = ""
         for m in messages:
             if not type(m) == dict:
                 abort(400, "message element must be of format {'role': "", 'content': ""}")
@@ -133,10 +134,13 @@ def response_for_json(js : dict):
             if role is None or cont is None:
                 abort(400, "message element must be of format {'role': "", 'content': ""}")
 
-            message += f"{str(role).upper()}: {str(cont)}\n"
+            if role == "system":
+                instruction += f"{str(cont)}\n"
+            else:
+                message += f"{str(role).upper()}: {str(cont)}\n"
 
         # add the final string for assistant
-        message += "ASSISTANT:"
+        message = f"{instruction}{message}ASSISTANT:"
 
     inputs['prompt'] = message
 
