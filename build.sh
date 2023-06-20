@@ -36,7 +36,6 @@ container() {
         --network $DB_NETWORK \
         -v "$POLYAI_SERV_CACHE:/home/user/.cache/" \
         -v "$POLYAI_MODELS:/home/user/models" \
-        -e "POLYAI_MODEL_PATH=$POLYAI_MODEL_PATH" \
         -p $POLYAI_SERV_PORT:8080 \
         --name polyai polyai
 }
