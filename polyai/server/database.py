@@ -1,4 +1,5 @@
 import os
+import uuid
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -146,6 +147,8 @@ class Frame:
     def df(self):
         return pd.DataFrame(self._tabl)
 
+def new_unique_key():
+    return str(uuid.uuid4())
 
 def _setup_proxy() -> SSHTunnelForwarder | None:
     """SSH server to connect to the database through"""

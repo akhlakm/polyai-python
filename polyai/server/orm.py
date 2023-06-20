@@ -103,13 +103,14 @@ class APIRequest(ORMBase):
     response: Mapped[Dict] = mapped_column(JSON)
     request_tokens: Mapped[int] = mapped_column(Integer, default=0)
     response_tokens: Mapped[int] = mapped_column(Integer, default=0)
-    apikey: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32))
+    apikey: Mapped[Optional[str]] = mapped_column(VARCHAR(length=40), index=True)
     codeversion: Mapped[str] = mapped_column(VARCHAR(length=15))
-    idStr: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32), unique=True)
+    idStr: Mapped[Optional[str]] = mapped_column(VARCHAR(length=40), unique=True)
     requrl: Mapped[str] = mapped_column(Text)
     reqmethod: Mapped[str] = mapped_column(VARCHAR(length=6))
     reqheaders: Mapped[Dict] = mapped_column(JSON)
     respheaders: Mapped[Optional[Dict]] = mapped_column(JSON)
+    elapsed_msec: Mapped[int] = mapped_column(Integer, default=0)
 
     def __init__(self, **kw: Any):
         super().__init__(**kw)
@@ -117,6 +118,29 @@ class APIRequest(ORMBase):
             self.date_added = datetime.now()
         if self.codeversion is None:
             self.codeversion = polyai.__version__
+
+
+class APIKey(ORMBase):
+    __tablename__ = "api_key"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    date_added: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    apikey: Mapped[str] = mapped_column(VARCHAR(length=40))
+    name: Mapped[str] = mapped_column(VARCHAR(length=40))
+    role: Mapped[int] = mapped_column(Integer, default=10)
+    email: Mapped[Optional[str]] = mapped_column(VARCHAR(length=40))
+    organization: Mapped[Optional[str]] = mapped_column(VARCHAR(length=40))
+
+    def __init__(self, **kw: Any):
+        super().__init__(**kw)
+        if self.date_added is None:
+            self.date_added = datetime.now()
+
+    def new(self, name, role = 10):
+        """ Create a new API key. """
+        self.apikey = "pl-" + database.new_unique_key()
+        self.name = name
+        self.role = role
 
 
 if __name__ == "__main__":

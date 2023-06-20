@@ -13,10 +13,14 @@ from polyai.server import models
 from polyai.server import database
 from polyai.server import orm
 
+# API version
 __version__ = "1.0"
-MAX_CONTEXT_LENGTH = 1024
 
+MAX_CONTEXT_LENGTH = 2048
+
+# Handle all the urls that starts with /api
 bp = Blueprint("apiv1", __name__)
+
 log = pylogg.New("endpoint")
 
 
@@ -25,30 +29,37 @@ def chat_completions():
     apiKey = request.headers.get("Api-Key", None)
     len = int(request.headers.get('Content-Length') or 0)
     if len > MAX_CONTEXT_LENGTH:
-        abort(400, "max context length exceeded")
+        abort(400, "max request length exceeded")
 
     if request.is_json:
-        message = request.get_json()
-        resp = response_for_json(message)
+        inputs = request.get_json()
+        output = response_for_json(inputs)
     else:
         log.warning("Not a JSON request.")
         # if not json formatted, create a simple prompt.
-        message = request.get_data(as_text=True)
-        if not message:
+        inputs = request.get_data(as_text=True)
+        if not inputs:
             abort(400, "no input received")
         else:
-            resp = response_for_text(message)
+            output = response_for_text(inputs)
 
-    responses, p_tok, c_tok = resp
-    ch = [make_choice_dict(r, 'stop') for r in responses]
+    texts, p_tok, c_tok = output
     idStr = create_idStr("chcmpl")
-    respObj = make_response_dict(idStr, 'chat.completions',
+    ch = [make_choice_dict(r, 'stop') for r in texts]
+
+    payload = make_response_dict(idStr, 'chat.completions',
                                  polyai.server.modelName,
                                  prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
 
-    Thread(target=store, args=(message, respObj, apiKey,
-                               request.url, request.method)).start()
-    return jsonify(respObj)
+    resp = make_response(jsonify(payload))
+
+    # Add the request info to database in the background
+    Thread(target=store, args=(inputs, payload, resp.headers,
+                               apiKey, request.url, request.method,
+                               request.headers)).start()
+    
+    # Respond
+    return resp
 
 
 @bp.route('/', methods=["GET"])
@@ -72,6 +83,8 @@ def response_for_json(js : dict):
         and the request text.
     """
     log.trace("JSON request: {}", js)
+
+    # Parse the json request
     messages = js.get("messages")
     prompt = js.get("prompt")
     temperature = js.get("temperature")
@@ -79,6 +92,7 @@ def response_for_json(js : dict):
     min_tokens = js.get("min_tokens")
     top_p = js.get("top_p")
 
+    # Create gptq parameter set
     inputs = {}
     try:
         if temperature:
@@ -92,6 +106,7 @@ def response_for_json(js : dict):
     except:
         abort(400, "invalid model parameter type")
 
+    # If a promt is given, ignore the messages
     if prompt:
         if 'ASSISTANT:' in prompt:
             message = prompt
@@ -99,6 +114,7 @@ def response_for_json(js : dict):
             message = f"USER: {prompt} ASSISTANT:"
 
     else:
+        # parse the messages
         # messasges = [ {'role': '', content: ''}]
         if messages is None:
             abort(400, "list of messages not provided")
@@ -106,7 +122,7 @@ def response_for_json(js : dict):
         if not type(messages) == list:
             abort(400, "messages must be a list")
 
-        # build the model prompt
+        # build the model prompt from the messages
         message = ""
         for m in messages:
             if not type(m) == dict:
@@ -187,7 +203,7 @@ def make_choice_dict(response, finish_reason):
     }
 
 
-def store(message, respObj, apiKey, url, method):
+def store(message, respObj, respheads, apiKey, url, method, reqheads):
     db = database.connect()
     output = " || ".join([ch['message']['content']
                             for ch in respObj['choices']])
@@ -203,6 +219,8 @@ def store(message, respObj, apiKey, url, method):
         request = message,
         output = output,
         response = respObj,
+        reqheaders = reqheads,
+        respheaders = respheads,
         request_tokens = respObj['usage']['prompt_tokens'],
         response_tokens = respObj['usage']['completion_tokens'],        
     )
