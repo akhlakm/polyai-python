@@ -1,3 +1,5 @@
+import json
+
 class PolyAIResponse:
     def __init__(self, data, headers):
         self._headers = headers
@@ -5,6 +7,12 @@ class PolyAIResponse:
 
     def __getitem__(self, item):
             return self.data[item]
+    
+    def dict(self):
+        return self.data
+
+    def __repr__(self):
+        return json.dumps(self.data)
 
     @property
     def request_id(self) -> str:
