@@ -10,7 +10,8 @@ def instruct_prompt(model, instruction, prompt, shots = [], **kwargs):
     Returns:
         Response dict,
         No of prompt tokens,
-        No of completion tokens.
+        No of completion tokens,
+        The request dict.
     """
 
     polyai.api.api_key = os.getenv("POLYAI_API_KEY")
@@ -31,7 +32,7 @@ def instruct_prompt(model, instruction, prompt, shots = [], **kwargs):
     p_tok = resp['usage']['prompt_tokens']
     c_tok = resp['usage']['completion_tokens']
 
-    return resp, p_tok, c_tok
+    return resp, p_tok, c_tok, payload
 
 
 def model_reply(respObj, i = 0):

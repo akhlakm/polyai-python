@@ -4,7 +4,7 @@ from polyai.api.helpers import generation_time, tok_per_sec
 
 load_dotenv()
 
-r, ptok, ctok = api.instruct_prompt("",
+r, ptok, ctok, req = api.instruct_prompt("",
     "Respond to user messages in a helpful way.",
     "Me too. Can you write me a poem about polymers?",
     shots = [
