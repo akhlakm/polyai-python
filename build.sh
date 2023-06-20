@@ -28,17 +28,20 @@ container() {
     export BUILDKIT_PROGRESS=plain && docker build -t polyai .
 
     mkdir -p "$POLYAI_SERV_CACHE" "$POLYAI_MODELS"
+
+    docker rm polyai > /dev/null
     docker run -it --gpus all \
+        --network $DB_NETWORK \
         -v "$POLYAI_SERV_CACHE:/home/user/.cache/" \
         -v "$POLYAI_MODELS:/home/user/models" \
         -e "POLYAI_MODEL_PATH=$POLYAI_MODEL_PATH" \
         -p $POLYAI_SERV_PORT:8080 \
-        polyai
+        --name polyai polyai
 }
 
 apitest() {
-    curl    --header "Content-Type: application/json" \
-            --data @request.json \
+    curl    -v --data @request.json \
+            --header "Content-Type: application/json" \
             http://localhost:8080/api/chat/completions
     echo 
 }
