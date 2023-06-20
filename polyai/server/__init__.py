@@ -1,5 +1,6 @@
 import os
 import sys
+import dotenv
 import argparse
 import pylogg as log
 
@@ -33,6 +34,9 @@ def main():
     args = parse_arguments()
     if args.debug:
         log.setLevel(log.DEBUG)
+
+    if not dotenv.load_dotenv():
+        raise RuntimeError("ENV not loaded")
 
     log.setFile(open("polyai.log", "a+"))
     log.setConsoleTimes(show=True)
