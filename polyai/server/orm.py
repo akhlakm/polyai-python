@@ -92,31 +92,24 @@ class APIRequest(ORMBase):
     """
     Persistence of API interaction.
 
-    Attributes:
-        codeversion: version of the current code implementation in date format
-        model: model used to query ex. gpt-3.5-turbo (string)
-        output: the actual output of the model
-        request: the request object sent to the api endpoint (json)
-        response: model response
-        request_tokens: number of tokens used for request
-        response_tokens: number of tokens used for response
     """
-
     __tablename__ = "api_request"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     date_added: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    codeversion: Mapped[str] = mapped_column(VARCHAR(length=15))
-    idStr: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32), unique=True)
-    apikey: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32))
-    requrl: Mapped[str] = mapped_column(Text)
-    reqmethod: Mapped[str] = mapped_column(VARCHAR(length=6))
-    model: Mapped[str] = mapped_column(Text)
     request: Mapped[str] = mapped_column(Text)
     output: Mapped[str] = mapped_column(Text)
+    model: Mapped[str] = mapped_column(Text)
     response: Mapped[Dict] = mapped_column(JSON)
     request_tokens: Mapped[int] = mapped_column(Integer, default=0)
     response_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    apikey: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32))
+    codeversion: Mapped[str] = mapped_column(VARCHAR(length=15))
+    idStr: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32), unique=True)
+    requrl: Mapped[str] = mapped_column(Text)
+    reqmethod: Mapped[str] = mapped_column(VARCHAR(length=6))
+    reqheaders: Mapped[Dict] = mapped_column(JSON)
+    respheaders: Mapped[Optional[Dict]] = mapped_column(JSON)
 
     def __init__(self, **kw: Any):
         super().__init__(**kw)
