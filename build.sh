@@ -33,7 +33,7 @@ container() {
     mkdir -p "$POLYAI_SERV_CACHE" "$POLYAI_MODELS"
 
     docker rm polyai > /dev/null
-    docker run -it --gpus all --network $DB_NETWORK \
+    docker run -it --gpus all --network $POLYAI_NETWORK \
         -v "$POLYAI_SERV_CACHE:/home/user/.cache/" \
         -v "$POLYAI_MODELS:/home/user/models" \
         -p $POLYAI_SERV_PORT:8080 \
