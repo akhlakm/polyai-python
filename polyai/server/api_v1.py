@@ -189,7 +189,7 @@ def make_response_dict(idstr : str, object : str, model : str, dt : int,
             'completion_tokens': compl_tok,
             'total_tokens': prompt_tok + compl_tok
         },
-        'elapsed-msec': dt,
+        'elapsed_msec': dt,
         'choices': choices
     }
 
@@ -222,7 +222,7 @@ def store(message, respObj, respheads, apiKey, url, method, reqheads):
         response = respObj,
         reqheaders = dict(reqheads),
         respheaders = dict(respheads),
-        elapsed_msec = respObj['elapsed-msec'],
+        elapsed_msec = respObj['elapsed_msec'],
         request_tokens = respObj['usage']['prompt_tokens'],
         response_tokens = respObj['usage']['completion_tokens'],
     )
