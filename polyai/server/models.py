@@ -38,6 +38,7 @@ def init_gptq_model(modelname, use_fast=False):
     polyai.server.model = gptq.load_quant(modeldir, modelname, 4, 128, fused_mlp=True)
     polyai.server.model.to(gptq.DEV)
     polyai.server.token = gptq.AutoTokenizer.from_pretrained(modeldir, use_fast=use_fast)
+    polyai.server.modelName = os.path.basename(modelname)
 
     t1.done("Model loaded: {}", modelname)
 

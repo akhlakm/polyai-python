@@ -1,4 +1,6 @@
 import time
+import json
+from threading import Thread
 
 from flask import (
     Blueprint, jsonify, make_response, request,
@@ -8,6 +10,8 @@ from flask import (
 import pylogg
 import polyai.server
 from polyai.server import models
+from polyai.server import database
+from polyai.server import orm
 
 __version__ = "1.0"
 MAX_CONTEXT_LENGTH = 1024
@@ -15,8 +19,10 @@ MAX_CONTEXT_LENGTH = 1024
 bp = Blueprint("apiv1", __name__)
 log = pylogg.New("endpoint")
 
+
 @bp.route('/chat/completions', methods = ['POST'])
 def chat_completions():
+    apiKey = request.headers.get("Api-Key", None)
     len = int(request.headers.get('Content-Length') or 0)
     if len > MAX_CONTEXT_LENGTH:
         abort(400, "max context length exceeded")
@@ -25,6 +31,7 @@ def chat_completions():
         message = request.get_json()
         resp = response_for_json(message)
     else:
+        log.warning("Not a JSON request.")
         # if not json formatted, create a simple prompt.
         message = request.get_data(as_text=True)
         if not message:
@@ -34,14 +41,20 @@ def chat_completions():
 
     responses, p_tok, c_tok = resp
     ch = [make_choice_dict(r, 'stop') for r in responses]
-    respObj = make_response_dict("test", 'chat.completions', 'test_model',
-                            prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
+    idStr = create_idStr("chcmpl")
+    respObj = make_response_dict(idStr, 'chat.completions',
+                                 polyai.server.modelName,
+                                 prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
+
+    Thread(target=store, args=(message, respObj, apiKey,
+                               request.url, request.method)).start()
     return jsonify(respObj)
 
 
 @bp.route('/', methods=["GET"])
 def index():
-    message = f"Welcome to PolyAI API v{__version__}. Current model: {polyai.server.model}"
+    message  = f"Welcome to PolyAI API v{__version__}.\n"
+    message += f"Current model: {polyai.server.modelName}\n"
     message += "Please send a post request to talk to the LLM.\n"
     message += 'Shell example :\n\n\tcurl http://localhost:8080/api/chat/completions -d "hello"\n'
 
@@ -153,7 +166,7 @@ def make_response_dict(idstr : str, object : str, model : str,
     return {
         'id': idstr,
         'object': object,
-        'created': round(time.time() * 1000),
+        'created': time.strftime("%a, %b %d %Y %X"),
         'model': model,
         'usage': {
             'prompt_tokens': prompt_tok,
@@ -172,6 +185,33 @@ def make_choice_dict(response, finish_reason):
         },
         'finish_reason': finish_reason
     }
+
+
+def store(message, respObj, apiKey, url, method):
+    db = database.connect()
+    output = " || ".join([ch['message']['content']
+                            for ch in respObj['choices']])
+    if type(message) == dict:
+        message = json.dumps(message)
+
+    apiReq = orm.APIRequest(
+        idStr = respObj['id'],
+        apikey = apiKey,
+        requrl = url,
+        reqmethod = method,
+        model = respObj['model'],
+        request = message,
+        output = output,
+        response = respObj,
+        request_tokens = respObj['usage']['prompt_tokens'],
+        response_tokens = respObj['usage']['completion_tokens'],        
+    )
+    apiReq.insert(db)
+
+
+def create_idStr(prefix):
+    idStr = str(round(time.time() * 1000))
+    return prefix + "-" + idStr
 
 
 @bp.errorhandler(400)

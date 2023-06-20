@@ -10,6 +10,7 @@ from polyai.server import app
 
 model = None
 token = None
+modelName = None
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="PolyAI Server (v%s)" %polyai.__version__)

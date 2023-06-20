@@ -40,6 +40,7 @@ class ORMBase(DeclarativeBase):
             log.trace("Insert ({}) - rollback", self.__tablename__)
         else:
             session.commit()
+            log.trace("Insert ({}) - commit", self.__tablename__)
 
     def update(self, session, newObj, *, test=False):
         values = newObj.serialize()
@@ -53,6 +54,7 @@ class ORMBase(DeclarativeBase):
             log.trace("Update ({}) - rollback", self.__tablename__)
         else:
             session.commit()
+            log.trace("Update ({}) - commit", self.__tablename__)
 
     def upsert(self, session, which: dict, payload, name : str, *,
                update=False, test=False) -> 'ORMBase':
@@ -105,16 +107,16 @@ class APIRequest(ORMBase):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     date_added: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     codeversion: Mapped[str] = mapped_column(VARCHAR(length=15))
-    apikey: Mapped[str] = mapped_column(VARCHAR(length=32))
+    idStr: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32), unique=True)
+    apikey: Mapped[Optional[str]] = mapped_column(VARCHAR(length=32))
     requrl: Mapped[str] = mapped_column(Text)
     reqmethod: Mapped[str] = mapped_column(VARCHAR(length=6))
     model: Mapped[str] = mapped_column(Text)
-    prompt: Mapped[str] = mapped_column(Text)
-    request_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    request: Mapped[str] = mapped_column(Text)
     output: Mapped[str] = mapped_column(Text)
-    response_tokens: Mapped[int] = mapped_column(Integer, default=0)
-    request: Mapped[Dict] = mapped_column(JSON)
     response: Mapped[Dict] = mapped_column(JSON)
+    request_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    response_tokens: Mapped[int] = mapped_column(Integer, default=0)
 
     def __init__(self, **kw: Any):
         super().__init__(**kw)
