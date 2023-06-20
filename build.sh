@@ -26,7 +26,7 @@ venv() {
     fi
 }
 
-container() {
+server() {
     source .env || echo ".env file read error, continuing anyway ..."
     export BUILDKIT_PROGRESS=plain && docker build -t polyai .
 
@@ -40,7 +40,11 @@ container() {
         --name polyai polyai
 }
 
-apitest() {
+shell() {
+    docker exec -it polyai /bin/bash
+}
+
+test() {
     curl    -v --data @request.json \
             --header "Content-Type: application/json" \
             http://localhost:8080/api/chat/completions
