@@ -30,23 +30,24 @@ class Completion(ChatCompletion):
 
 def dummy_response():
     return {
-        'id': 'chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve',
-        'object': 'chat.completion',
-        'created': 1677649420,
-        'model': 'gpt-3.5-turbo',
-        'usage': {
-            'prompt_tokens': 56,
-            'completion_tokens': 31,
-            'total_tokens': 87
-        },
-        'choices': [
+        "choices": [
             {
-                'message': {
-                    'role': 'assistant',
-                    'content': 'The 2020 World Series was played in Arlington, Texas at the Globe Life Field, which was the new home stadium for the Texas Rangers.'
-                },
-                'finish_reason': 'stop',
-                'index': 0
+                "finish_reason": "stop",
+                "index": 0,
+                "message": {
+                    "content": "Himalayas, Nepal, India",
+                    "role": "assistant"
+                }
             }
-        ]
+        ],
+        "created": "Tue, Jun 20 2023 02:53:53",
+        "elapsed_msec": 2061,
+        "id": "chcmpl-1687229633485",
+        "model": "Wizard-Vicuna-13B-Uncensored-GPTQ-4bit-128g.compat.no-act-order.safetensors",
+        "object": "chat.completions",
+        "usage": {
+            "completion_tokens": 10,
+            "prompt_tokens": 70,
+            "total_tokens": 80
+        }
     }
