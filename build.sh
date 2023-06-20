@@ -43,7 +43,7 @@ container() {
 apitest() {
     curl    -v --data @request.json \
             --header "Content-Type: application/json" \
-            https://localhost:8080/api/chat/completions
+            http://localhost:8080/api/chat/completions
     echo 
 }
 
