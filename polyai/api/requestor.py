@@ -130,9 +130,8 @@ class APIRequestor:
         headers = {
             "X-PolyAI-Client-User-Agent": json.dumps(ua),
             "User-Agent": user_agent,
+            "Api-Key": self.api_key
         }
-
-        headers.update(util.api_key_to_header(self.api_type, self.api_key))
 
         if self.organization:
             headers["PolyAI-Organization"] = self.organization
