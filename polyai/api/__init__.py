@@ -1,6 +1,7 @@
 import os
 from .chat_completion import Completion
 from .chat_completion import ChatCompletion
+from .helpers import instruct_prompt, model_reply
 
 api_key = os.environ.get("POLYAI_API_KEY")
 api_key_path = os.environ.get("POLYAI_API_KEY_PATH")
