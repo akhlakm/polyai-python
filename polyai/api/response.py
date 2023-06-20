@@ -3,6 +3,9 @@ class PolyAIResponse:
         self._headers = headers
         self.data = data
 
+    def __getitem__(self, item):
+            return self.data[item]
+
     @property
     def request_id(self) -> str:
         return self._headers.get("request-id")
