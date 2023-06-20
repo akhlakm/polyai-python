@@ -40,7 +40,7 @@ class ORMBase(DeclarativeBase):
             log.trace("Insert ({}) - rollback", self.__tablename__)
         else:
             session.commit()
-            log.trace("Insert ({}) - commit", self.__tablename__)
+            log.trace("Insert ({}) - ok", self.__tablename__)
 
     def update(self, session, newObj, *, test=False):
         values = newObj.serialize()
@@ -54,7 +54,7 @@ class ORMBase(DeclarativeBase):
             log.trace("Update ({}) - rollback", self.__tablename__)
         else:
             session.commit()
-            log.trace("Update ({}) - commit", self.__tablename__)
+            log.trace("Update ({}) - ok", self.__tablename__)
 
     def upsert(self, session, which: dict, payload, name : str, *,
                update=False, test=False) -> 'ORMBase':
