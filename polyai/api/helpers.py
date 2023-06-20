@@ -47,4 +47,4 @@ def tok_per_sec(respObj):
     ms = generation_time(respObj)
     p_tok = respObj['usage']['prompt_tokens']
     c_tok = respObj['usage']['completion_tokens']
-    return 1000 * (p_tok + c_tok) / ms
+    return round(1000 * (p_tok + c_tok) / ms, 2)
