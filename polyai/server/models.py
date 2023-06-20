@@ -52,7 +52,7 @@ def init_hf_model(pipeline_type, modelname):
     t1.done("Model loaded: {}", modelname)
 
 
-def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, minlen=10, **kwargs):
+def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.1, minlen=10, **kwargs):
     """
     Given a prompt message, generate model response.
     
