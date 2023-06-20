@@ -43,12 +43,12 @@ def chat_completions():
         else:
             output = response_for_text(inputs)
 
-    texts, p_tok, c_tok = output
+    texts, p_tok, c_tok, dt = output
     idStr = create_idStr("chcmpl")
     ch = [make_choice_dict(r, 'stop') for r in texts]
 
     payload = make_response_dict(idStr, 'chat.completions',
-                                 polyai.server.modelName,
+                                 polyai.server.modelName, dt,
                                  prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
 
     resp = make_response(jsonify(payload))
@@ -140,14 +140,14 @@ def response_for_json(js : dict):
 
     inputs['prompt'] = message
 
-    responses, p_tok, c_tok = models.get_gptq_response(**inputs)
+    responses, p_tok, c_tok, dt = models.get_gptq_response(**inputs)
 
     # remove the start end <s> tokens
     # and strip the input prompt
     for i in range(len(responses)):
         responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
 
-    return responses, p_tok, c_tok
+    return responses, p_tok, c_tok, dt
 
 
 def response_for_text(text : str):
@@ -162,17 +162,17 @@ def response_for_text(text : str):
     """
     log.trace("Text request: {}", text)
     message = f"USER: {text} ASSISTANT:"
-    responses, p_tok, c_tok = models.get_gptq_response(message)
+    responses, p_tok, c_tok, dt = models.get_gptq_response(message)
 
     # remove the start end <s> tokens
     # and strip the input prompt
     for i in range(len(responses)):
         responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
 
-    return responses, p_tok, c_tok
+    return responses, p_tok, c_tok, dt
 
 
-def make_response_dict(idstr : str, object : str, model : str,
+def make_response_dict(idstr : str, object : str, model : str, dt : int,
                prompt_tok : int, compl_tok : int, choices : list):
     
     # set choice indices
@@ -189,6 +189,7 @@ def make_response_dict(idstr : str, object : str, model : str,
             'completion_tokens': compl_tok,
             'total_tokens': prompt_tok + compl_tok
         },
+        'elapsed-msec': dt,
         'choices': choices
     }
 
@@ -221,8 +222,9 @@ def store(message, respObj, respheads, apiKey, url, method, reqheads):
         response = respObj,
         reqheaders = reqheads,
         respheaders = respheads,
+        elapsed_msec = respObj['elapsed-msec'],
         request_tokens = respObj['usage']['prompt_tokens'],
-        response_tokens = respObj['usage']['completion_tokens'],        
+        response_tokens = respObj['usage']['completion_tokens'],
     )
     apiReq.insert(db)
 

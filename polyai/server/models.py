@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 import pylogg
 import polyai.server
@@ -52,7 +53,18 @@ def init_hf_model(pipeline_type, modelname):
 
 
 def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, minlen=10, **kwargs):
+    """
+    Given a prompt message, generate model response.
+    
+    Returns:
+        List of generated responses,
+        Total input tokens,
+        Total completion tokens,
+        Total time elapsed in miliseconds.
+    """
     t1 = log.trace("Getting response for: {}", prompt)
+
+    start = time.time()
     input_ids = polyai.server.token.encode(prompt, return_tensors="pt").to(gptq.DEV)
 
     prompt_tok = 0
@@ -73,6 +85,7 @@ def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.8, minlen=10, **kwa
         outputs.append(polyai.server.token.decode(tokens))
 
     compl_tok -= prompt_tok
+    delta = time.time() - start
 
     t1.done("Response: {}", outputs)
-    return outputs, prompt_tok, compl_tok
+    return outputs, prompt_tok, compl_tok, round(1000 * delta)
