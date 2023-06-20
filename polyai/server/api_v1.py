@@ -134,13 +134,24 @@ def response_for_json(js : dict):
             if role is None or cont is None:
                 abort(400, "message element must be of format {'role': "", 'content': ""}")
 
-            if role == "system":
-                instruction += f"{str(cont)}\n"
+            role = str(role).upper()
+            cont = str(cont)
+
+            if role == "SYSTEM":
+                instruction += f"{cont}\n"
             else:
-                message += f"{str(role).upper()}: {str(cont)}\n"
+                # For guanaco-33B
+                # @todo: move this to env file
+                if role == "USER":
+                    role = "### Human:"
+                elif role == "ASSISTANT":
+                    role = "### Assistant"
+                message += f"{role}: {cont}\n"
 
         # add the final string for assistant
-        message = f"{instruction}{message}ASSISTANT:"
+        # message = f"{instruction}{message}ASSISTANT:"
+        message = f"{instruction}{message}### Assistant:"
+
 
     inputs['prompt'] = message
 
@@ -149,7 +160,9 @@ def response_for_json(js : dict):
     # remove the start end <s> tokens
     # and strip the input prompt
     for i in range(len(responses)):
-        responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
+        #responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
+        responses[i] = responses[i][3:].replace(message, "", 1).strip()
+
 
     return responses, p_tok, c_tok, dt
 
@@ -209,7 +222,12 @@ def make_choice_dict(response, finish_reason):
 
 
 def store(message, respObj, respheads, apiKey, url, method, reqheads):
-    db = database.connect()
+    try:
+        db = database.connect()
+    except Exception as err:
+        log.error("Failed to connect database: {}", err)
+        return
+
     output = " || ".join([ch['message']['content']
                             for ch in respObj['choices']])
     if type(message) == dict:
