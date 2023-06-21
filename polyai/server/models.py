@@ -57,6 +57,7 @@ def init_gptq_model(modelname, groupsize=-1, fused_mlp=False, use_fast=False):
     """
     unload_model()
     t1 = log.trace("Loading GPTQ model: {}", modelname)
+    vram_usage()
 
     modeldir = os.path.dirname(modelname)
     polyai.server.model = gptq.load_quant(modeldir, modelname, 4, groupsize, fused_mlp=fused_mlp)
