@@ -90,7 +90,7 @@ class ORMBase(DeclarativeBase):
 
 class APIRequest(ORMBase):
     """
-    Persistence of API interaction.
+    Persistence of API interaction to the server.
 
     """
     __tablename__ = "api_request"
@@ -121,6 +121,14 @@ class APIRequest(ORMBase):
 
 
 class APIKey(ORMBase):
+    """
+    Table to store authorized api keys. 
+    
+    Check user permission using the role.
+    Role <10 should be used for super/admin users.
+    If name == organization, it is an organization account.
+
+    """
     __tablename__ = "api_key"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -136,11 +144,13 @@ class APIKey(ORMBase):
         if self.date_added is None:
             self.date_added = datetime.now()
 
-    def new(self, name, role = 10):
+    def new(self, name, role = 10, is_org=False):
         """ Create a new API key. """
         self.apikey = "pl-" + database.new_unique_key()
         self.name = name
         self.role = role
+        if is_org:
+            self.organization = self.name
 
 
 if __name__ == "__main__":
