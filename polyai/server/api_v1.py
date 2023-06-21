@@ -122,10 +122,12 @@ def response_for_json(js : dict):
 
     # If a promt is given, ignore the messages
     if prompt:
-        if 'ASSISTANT:' in prompt:
+        if 'assistant:' in prompt.lower():
+            # already formatted
             message = prompt
         else:
-            message = f"USER: {prompt} ASSISTANT:"
+            # format using env vars
+            message = f"{POLYAI_USER_FMT} {prompt} {POLYAI_BOT_FMT}"
 
     else:
         # parse the messages
@@ -152,8 +154,10 @@ def response_for_json(js : dict):
             cont = str(cont)
 
             if role == "system":
+                # A system role is the main instruction
                 instruction += f"{POLYAI_INSTRUCTION_FMT} {cont}\n".lstrip()
             else:
+                # Few-shots
                 if role == "user": role = POLYAI_USER_FMT
                 elif role == "assistant": role = POLYAI_BOT_FMT
                 message += f"{role} {cont}\n".lstrip()
@@ -165,8 +169,8 @@ def response_for_json(js : dict):
     inputs['prompt'] = message
     responses, p_tok, c_tok, dt = models.get_gptq_response(**inputs)
 
-    # remove the start end <s> tokens
-    # and strip the input prompt
+    # remove the start end <s> tokens, and strip the input prompt
+    # @todo: this depends on the model
     for i in range(len(responses)):
         #responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
         responses[i] = responses[i][3:].replace(message, "", 1).strip()
@@ -185,7 +189,7 @@ def response_for_text(text : str):
         and the request text.
     """
     log.trace("Text request: {}", text)
-    message = f"USER: {text} ASSISTANT:"
+    message = f"{POLYAI_USER_FMT} {text} {POLYAI_BOT_FMT}"
     responses, p_tok, c_tok, dt = models.get_gptq_response(message)
 
     # remove the start end <s> tokens
@@ -219,6 +223,7 @@ def make_response_dict(idstr : str, object : str, model : str, dt : int,
 
 
 def make_choice_dict(response, finish_reason):
+    # openai like response object
     return {
         'message': {
             'role': 'assistant',
@@ -229,10 +234,13 @@ def make_choice_dict(response, finish_reason):
 
 
 def store(message, respObj, respheads, apiKey, url, method, reqheads):
+    """ Store api request and response info to database.
+        Ignore with a warning if db connection fails.
+    """
     try:
         db = database.connect()
     except Exception as err:
-        log.error("Failed to connect database: {}", err)
+        log.warning("Failed to connect database: {}", err)
         return
 
     output = " || ".join([ch['message']['content']
@@ -259,6 +267,7 @@ def store(message, respObj, respheads, apiKey, url, method, reqheads):
 
 
 def create_idStr(prefix):
+    """ Use milliseconds to create a unique id. """
     idStr = str(round(time.time() * 1000))
     return prefix + "-" + idStr
 
