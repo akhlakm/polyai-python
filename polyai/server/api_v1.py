@@ -1,3 +1,4 @@
+import os
 import time
 import json
 from threading import Thread
@@ -16,7 +17,10 @@ from polyai.server import orm
 # API version
 __version__ = "1.0"
 
-MAX_CONTEXT_LENGTH = 2048
+POLYAI_REQUEST_LENGTH = int(os.getenv("POLYAI_REQUEST_LENGTH") or 2048)
+POLYAI_INSTRUCTION_FMT = os.getenv("POLYAI_INSTRUCTION_FMT", "")
+POLYAI_USER_FMT = os.getenv("POLYAI_USER_FMT", "USER:")
+POLYAI_BOT_FMT = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 
 # Handle all the urls that starts with /api
 bp = Blueprint("apiv1", __name__)
@@ -26,31 +30,40 @@ log = pylogg.New("endpoint")
 
 @bp.route('/chat/completions', methods = ['POST'])
 def chat_completions():
+    """
+    Handle the chat completion requests. Must be a post method.
+    
+    """
     apiKey = request.headers.get("Api-Key", None)
     len = int(request.headers.get('Content-Length') or 0)
-    if len > MAX_CONTEXT_LENGTH:
+    if len > int(POLYAI_REQUEST_LENGTH):
         abort(400, "max request length exceeded")
 
     if request.is_json:
         inputs = request.get_json()
         output = response_for_json(inputs)
     else:
-        log.warning("Not a JSON request.")
         # if not json formatted, create a simple prompt.
+        log.warning("Not a JSON request.")
         inputs = request.get_data(as_text=True)
         if not inputs:
             abort(400, "no input received")
         else:
             output = response_for_text(inputs)
 
+    # model text generation stats
     texts, p_tok, c_tok, dt = output
-    idStr = create_idStr("chcmpl")
-    ch = [make_choice_dict(r, 'stop') for r in texts]
 
+    # id of the chat request
+    idStr = create_idStr("chcmpl")
+
+    # convert to openai like json format
+    ch = [make_choice_dict(r, 'stop') for r in texts]
     payload = make_response_dict(idStr, 'chat.completions',
                                  polyai.server.modelName, dt,
                                  prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
 
+    # http response
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
@@ -64,6 +77,7 @@ def chat_completions():
 
 @bp.route('/', methods=["GET"])
 def index():
+    """ Handle the get requests with a simple page. """
     message  = f"Welcome to PolyAI API v{__version__}.\n"
     message += f"Current model: {polyai.server.modelName}\n"
     message += "Please send a post request to talk to the LLM.\n"
@@ -134,27 +148,21 @@ def response_for_json(js : dict):
             if role is None or cont is None:
                 abort(400, "message element must be of format {'role': "", 'content': ""}")
 
-            role = str(role).upper()
+            role = str(role).lower()
             cont = str(cont)
 
-            if role == "SYSTEM":
-                instruction += f"{cont}\n"
+            if role == "system":
+                instruction += f"{POLYAI_INSTRUCTION_FMT} {cont}\n".lstrip()
             else:
-                # For guanaco-33B
-                # @todo: move this to env file
-                if role == "USER":
-                    role = "### Human:"
-                elif role == "ASSISTANT":
-                    role = "### Assistant"
-                message += f"{role}: {cont}\n"
+                if role == "user": role = POLYAI_USER_FMT
+                elif role == "assistant": role = POLYAI_BOT_FMT
+                message += f"{role} {cont}\n".lstrip()
 
         # add the final string for assistant
-        # message = f"{instruction}{message}ASSISTANT:"
-        message = f"{instruction}{message}### Assistant:"
+        message = f"{instruction}{message}{POLYAI_BOT_FMT}"
 
 
     inputs['prompt'] = message
-
     responses, p_tok, c_tok, dt = models.get_gptq_response(**inputs)
 
     # remove the start end <s> tokens
@@ -162,7 +170,6 @@ def response_for_json(js : dict):
     for i in range(len(responses)):
         #responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
         responses[i] = responses[i][3:].replace(message, "", 1).strip()
-
 
     return responses, p_tok, c_tok, dt
 
