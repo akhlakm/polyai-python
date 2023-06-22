@@ -63,7 +63,7 @@ def init_gptq_model(modelname, groupsize=-1, fused_mlp=False, use_fast=False):
     polyai.server.model = gptq.load_quant(modeldir, modelname, 4, groupsize, fused_mlp=fused_mlp)
     polyai.server.model.to(gptq.DEV)
     polyai.server.token = gptq.AutoTokenizer.from_pretrained(modeldir, use_fast=use_fast)
-    polyai.server.modelName = os.path.basename(modelname)
+    polyai.server.modelName = os.path.basename(modelname).split(".")[0]
 
     t1.done("Model loaded: {}", modelname)
     vram_usage()
