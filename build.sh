@@ -26,7 +26,7 @@ venv() {
     fi
 }
 
-server() {
+docker-server() {
     source .env || echo ".env file read error, continuing anyway ..."
     export BUILDKIT_PROGRESS=plain && docker build -t polyai .
 
@@ -40,7 +40,7 @@ server() {
         --name polyai polyai
 }
 
-shell() {
+docker-shell() {
     docker exec -it polyai /bin/bash
 }
 
