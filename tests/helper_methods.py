@@ -7,7 +7,7 @@ with two-shot learning.
 """
 
 from dotenv import load_dotenv
-from polyai.api.util import setup_ssh_tunnel
+from polyai.api.util import create_ssh_tunnel
 from polyai.api.helpers import (
     generation_time, tok_per_sec,
     instruct_prompt, model_reply
@@ -18,7 +18,7 @@ load_dotenv()
 
 # Uncomment this to use ssh tunnel. Make sure to
 # add hostname, username and password in the .env file.
-setup_ssh_tunnel()
+create_ssh_tunnel()
 
 print("Sending api request.")
 resp, ptok, ctok, req = instruct_prompt(

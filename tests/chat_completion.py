@@ -1,19 +1,22 @@
 #!/usr/bin/env python
+"""
+Example use of few-shot chat completion of polyai api.
+The implementation is same as openai.
 
-# The implementation is same as openai !!
+"""
+
 import polyai.api as polyai
 
 import os
 from dotenv import load_dotenv
-from polyai.api.util import setup_ssh_tunnel
 
 load_dotenv()       # load env variables
-setup_ssh_tunnel()  # enable this if needed
+polyai.create_ssh_tunnel()  # if needed
 
 polyai.api_key = os.environ.get("POLYAI_API_KEY")
 
 resp = polyai.ChatCompletion.create(
-    model="gpt-3.5-turbo", # currently ignored by the server.
+    model="polyai", # currently ignored by the server.
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Who won the world series in 2020?"},
