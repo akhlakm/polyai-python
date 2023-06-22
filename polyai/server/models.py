@@ -1,4 +1,5 @@
 import os
+import gc
 import sys
 import time
 import torch
@@ -38,7 +39,6 @@ def unload_model():
     existing model.
     """
     if polyai.server.model is not None:
-        import gc, torch
         t1 = log.trace("Unloading current model.")
         polyai.server.model = None
         polyai.server.token = None
