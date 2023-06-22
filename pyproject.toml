@@ -20,6 +20,7 @@ dependencies = [
   "pylogg @ git+https://github.com/akhlakm/python-logg.git",
   "requests",
   "flask",
+  "sshtunnel",
 ]
 
 [project.urls]
