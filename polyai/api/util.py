@@ -19,7 +19,7 @@ def default_api_key() -> str:
 
 
 
-def ssh_tunnel():
+def setup_ssh_tunnel():
     """
     Update the API endpoint URL to connect via SSH tunnel.
     
