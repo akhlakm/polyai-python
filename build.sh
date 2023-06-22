@@ -45,7 +45,7 @@ docker-shell() {
 }
 
 test() {
-    curl    -v --data @request.json \
+    curl    -v --data @tests/request.json \
             --header "Content-Type: application/json" \
             http://localhost:8080/api/chat/completions
     echo 
