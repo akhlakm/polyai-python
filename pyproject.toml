@@ -1,6 +1,6 @@
 [project]
 name = "polyai-python"
-version = "2023.06.07"
+version = "0.0.02"
 authors = [
     { name="Akhlak Mahmood", email="akhlakm@gatech.edu" },
 ]

@@ -1,2 +1,2 @@
-__version__ = "2023.06.07"
+__version__ = "0.0.02"
 __author__ = "Akhlak Mahmood"
