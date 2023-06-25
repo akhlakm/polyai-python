@@ -147,25 +147,30 @@ def get_gptq_response(prompt, maxlen=512, top_p=0.95, temp=0.1, minlen=10, **kwa
 
 import spacy
 from collections import namedtuple
+nlp = spacy.load("en_core_web_sm")
 
 def _ner_feed(seq_pred, text) -> list[namedtuple]:
     """ Convert outputs of the NER to a form usable by record extraction
         seq_pred: List of dictionaries
         text: str, text fed to sequence classification model
     """
+    doc = nlp(text)
+    token_label = namedtuple('token_label', ["text", "label"])
+    if len(seq_pred) == 0:
+        # If no NER could be reconginzed, the prediction list would be empty.
+        return [token_label(doc[i].text, 'O') for i in range(len(doc))]
+
     seq_index = 0
     text_len = len(text)
     seq_len = len(seq_pred)
-    start_index = seq_pred[seq_index]["start"]
-    end_index = seq_pred[seq_index]["end"]
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(text)
     len_doc = len(doc)
     token = ''
     token_labels = []
-    token_label = namedtuple('token_label', ["text", "label"])
+    start_index = seq_pred[seq_index]["start"]
+    end_index = seq_pred[seq_index]["end"]
     i = 0
     char_index = -1
+
     while i < len_doc:
         token = doc[i].text
         if char_index+1 >= start_index and seq_index < seq_len:
@@ -186,7 +191,8 @@ def _ner_feed(seq_pred, text) -> list[namedtuple]:
             token_labels.append(token_label(token, 'O'))
             i += 1
             char_index += len(token)
-            if char_index < text_len-1 and text[char_index+1] == ' ': char_index += 1
+            if char_index < text_len-1 and text[char_index+1] == ' ':
+                char_index += 1
     
     return token_labels 
 
@@ -199,6 +205,7 @@ def get_bert_ner(text):
     """
     t1 = log.trace("Getting NER for: {}", text)
     ner_output = polyai.server.pipeline(text)
+    print(ner_output)
     ner_tuples = _ner_feed(ner_output, text)
     t1.done("NER processed")
     return [tup._asdict() for tup in ner_tuples], round(1000 * t1.elapsed())
