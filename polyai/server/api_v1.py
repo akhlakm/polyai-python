@@ -28,6 +28,47 @@ bp = Blueprint("apiv1", __name__)
 log = pylogg.New("endpoint")
 
 
+@bp.route('/bert/ner', methods = ['POST'])
+def bert_ner():
+    """
+    Handle NER requests. Must be a post method.
+    
+    """
+    apiKey = request.headers.get("Api-Key", None)
+
+    if request.is_json:
+        js = request.get_json()
+        text = js.get("text")
+    else:
+        text = request.get_data(as_text=True)
+        if not text:
+            abort(400, "no input received")
+
+    ner, dt = models.get_bert_ner(text)
+    p_tok = 0
+    c_tok = 0
+
+    # id of the chat request
+    idStr = create_idStr("ner")
+
+    # convert to openai like json format
+    payload = make_response_dict(idStr, 'bert.ner',
+                                 polyai.server.modelName, dt,
+                                 prompt_tok=p_tok, compl_tok=c_tok, ner=ner)
+
+    # http response
+    resp = make_response(jsonify(payload))
+
+    # Add the request info to database in the background
+    Thread(target=store, args=(text, payload, resp.headers,
+                               apiKey, request.url, request.method,
+                               request.headers)).start()
+    
+    # Respond
+    return resp
+
+
+
 @bp.route('/chat/completions', methods = ['POST'])
 def chat_completions():
     """
@@ -201,7 +242,11 @@ def response_for_text(text : str):
 
 
 def make_response_dict(idstr : str, object : str, model : str, dt : int,
-               prompt_tok : int, compl_tok : int, choices : list):
+               prompt_tok : int, compl_tok : int, choices : list = [],
+               ner : list = []):
+    
+    if len(ner) == 0 and len(choices) == 0:
+        raise ValueError("Either ner or choices need to be provided")
     
     # set choice indices
     for i, ch in enumerate(choices):
@@ -218,7 +263,8 @@ def make_response_dict(idstr : str, object : str, model : str, dt : int,
             'total_tokens': prompt_tok + compl_tok
         },
         'elapsed_msec': dt,
-        'choices': choices
+        'choices': choices,
+        'ner_tags': ner,
     }
 
 

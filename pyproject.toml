@@ -50,6 +50,7 @@ server = [
     "numpy",
     "protobuf",
     "gunicorn",
+    "spacy",
 ]
 
 [build-system]

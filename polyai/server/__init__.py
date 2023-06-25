@@ -11,6 +11,7 @@ from polyai.server import app
 
 model = None
 token = None
+pipeline = None
 modelName = None
 
 def parse_arguments():
@@ -44,11 +45,14 @@ def main():
     if args.cmd == "server":
         if args.model is None:
             modelpath = os.path.join("models", os.environ.get("POLYAI_MODEL_PATH"))
-            if os.path.isfile(modelpath):
+            if os.path.exists(modelpath):
                 args.model = modelpath
 
         if args.model is not None:
-            models.init_gptq_model(args.model)
+            try:
+                models.init_gptq_model(args.model)
+            except:
+                models.init_hf_bert(args.model)
         else:
             log.error("No valid modelpath specified. Models can specified using the --model argument.")
             log.error("Alternatively, set the POLYAI_MODEL_PATH relative to ./models/ directory.")

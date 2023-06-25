@@ -28,7 +28,7 @@ venv() {
 
 docker-server() {
     source .env || echo ".env file read error, continuing anyway ..."
-    export BUILDKIT_PROGRESS=plain && docker build -t polyai .
+    export BUILDKIT_PROGRESS=plain && docker build -t polyai . || exit 10
 
     mkdir -p "$POLYAI_SERV_CACHE" "$POLYAI_MODELS"
 

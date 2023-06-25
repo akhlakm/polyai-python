@@ -39,6 +39,10 @@ def model_reply(respObj, i = 0):
     """ Extract the ith model reply from the response json. """
     return respObj['choices'][i]['message']['content']
 
+def model_ner(respObj):
+    """ Extract the NER tag list from the response json. """
+    return respObj['ner_tags']
+
 def generation_time(repsObj):
     """ Return the generation time in miliseconds. """
     return repsObj['elapsed_msec']
