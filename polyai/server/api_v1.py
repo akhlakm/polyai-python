@@ -213,8 +213,8 @@ def response_for_json(js : dict):
     # remove the start end <s> tokens, and strip the input prompt
     # @todo: this depends on the model
     for i in range(len(responses)):
-        #responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
-        responses[i] = responses[i][3:].replace(message, "", 1).strip()
+        responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
+        # responses[i] = responses[i][3:].replace(message, "", 1).strip()
 
     return responses, p_tok, c_tok, dt
 
