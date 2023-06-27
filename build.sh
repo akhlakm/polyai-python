@@ -28,7 +28,7 @@ venv() {
 
 docker-server() {
     source .env || echo ".env file read error, continuing anyway ..."
-    export BUILDKIT_PROGRESS=plain && docker build -t polyai -f Dockerfile.server || exit 10
+    export BUILDKIT_PROGRESS=plain && docker build -t polyai -f Dockerfile.server . || exit 10
 
     mkdir -p "$POLYAI_SERV_CACHE" "$POLYAI_MODELS"
 
@@ -51,5 +51,39 @@ test() {
     echo 
 }
 
-"$@"
+docker-test-entry() {
+    ## Function to be called from inside a docker container.
+    ## --------------------------------------------------------------------------------------
+    if [ ! -f .docker_env/bin/activate ]; then
+        echo "Setting up VENV ..."
+        python3 -m venv .docker_env      || exit 101
+        source .docker_env/bin/activate  || exit 102
+        # Install libraries
+        pip install -vv torch==2.0.1 --extra-index-url https://download.pytorch.org/whl/cu118
+        pip install transformers datasets evaluate peft safetensors
+    fi
 
+    source .docker_env/bin/activate  || exit 102
+
+    ## Start terminal
+    /bin/bash --init-file <(echo ". .bashrc; . .docker_env/bin/activate")
+}
+
+docker-test() {
+    ## Build and run the test docker container.
+    ## --------------------------------------------------------------------------------------
+    source .env || exit 10
+    export BUILDKIT_PROGRESS=plain && docker build -t polyai-test -f Dockerfile.test . || exit 20
+
+    mkdir -p .docker_env
+    docker rm polyai-test > /dev/null
+    docker run -it --gpus all --network $POLYAI_NETWORK \
+        -v "$POLYAI_SERV_CACHE:/home/user/.cache/" \
+        -v "$POLYAI_MODELS:/home/user/models" \
+        -v "./.docker_env:/home/user/.docker_env" \
+        -p 8081:8080 \
+        --name polyai-test polyai-test \
+        docker-test-entry
+}
+
+"$@"
