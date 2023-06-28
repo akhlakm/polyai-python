@@ -24,8 +24,8 @@ class LLM:
     lora : ExLlamaLora = None
     args : argparse.Namespace = None
     system : str = ""
-    user : str = "USER"
-    bot : str = "ASSISTANT"
+    user : str = os.getenv("POLYAI_USER_FMT", "USER:")
+    bot  : str = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 
 
 def init_exllama_model(modelpath, lora_dir = None):
@@ -105,11 +105,11 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     generator = ExLlamaGenerator(LLM.model, LLM.tokenizer, LLM.cache)
     generator.settings = ExLlamaGenerator.Settings()
-    generator.settings.temperature = float(kwargs.get("temperature") or 0.95)
+    generator.settings.temperature = float(kwargs.get("temperature") or 0.1)
     generator.settings.top_k = int(kwargs.get("top_k") or 20)
-    generator.settings.top_p = float(kwargs.get("top_p") or 0.65)
+    generator.settings.top_p = float(kwargs.get("top_p") or 0.95)
     generator.settings.min_p = float(kwargs.get("min_p") or 0.0)
-    generator.settings.token_repetition_penalty_max = float(kwargs.get("repetition_penalty") or 1.15)
+    generator.settings.token_repetition_penalty_max = float(kwargs.get("repetition_penalty") or 1.0)
     generator.settings.token_repetition_penalty_sustain = int(kwargs.get("repetition_penalty_sustain") or 256)
     generator.settings.token_repetition_penalty_decay = generator.settings.token_repetition_penalty_sustain // 2
     generator.settings.beams = int(kwargs.get("beams") or 1)

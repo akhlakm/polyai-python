@@ -83,7 +83,7 @@ docker-test() {
         -v "$POLYAI_SERV_CACHE:/home/user/.cache/" \
         -v "$POLYAI_MODELS:/home/user/models" \
         -v "./.docker_env:/home/user/.docker_env" \
-        -v "./exllama:/home/user/exllama" \
+        -v "./polyai:/home/user/polyai" \
         -p 8081:8080 \
         --name polyai-test polyai-test \
         docker-test-entry
