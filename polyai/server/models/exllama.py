@@ -11,6 +11,8 @@ from polyai.exllama.lora import ExLlamaLora
 from polyai.exllama.tokenizer import ExLlamaTokenizer
 from polyai.exllama.generator import ExLlamaGenerator
 
+from polyai.server.models import utils
+
 
 class LLM:
     """ Global variables """
@@ -33,6 +35,11 @@ def init_exllama_model(modelpath, lora_dir = None):
         modelname str : path to model safetensor file
         lora_dir  str : path to lora directory
     """
+
+    t1 = log.trace("Loading ExLlama model: {}", modelpath)
+    if lora_dir:
+        log.note("Using LoRA from: {}", lora_dir)
+    utils.vram_usage()
 
     torch.set_grad_enabled(False)
     torch.cuda._lazy_init()
@@ -60,8 +67,11 @@ def init_exllama_model(modelpath, lora_dir = None):
     LLM.tokenizer = tokenizer
     LLM.cache = cache
     LLM.lora = lora
+    LLM.modelName = os.path.basename(modelpath).split(".")[0]
 
-    model_init.print_stats(model)
+    model_init.print_stats(LLM.model)
+    t1.done("Model loaded: {}", LLM.modelName)
+    utils.vram_usage()
 
 
 def load_exllama_lora(model, loradir = None) -> ExLlamaLora:
@@ -95,18 +105,18 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     generator = ExLlamaGenerator(LLM.model, LLM.tokenizer, LLM.cache)
     generator.settings = ExLlamaGenerator.Settings()
-    generator.settings.temperature = float(kwargs.get("temperature") or 0.1)
+    generator.settings.temperature = float(kwargs.get("temperature") or 0.95)
     generator.settings.top_k = int(kwargs.get("top_k") or 20)
-    generator.settings.top_p = float(kwargs.get("top_p") or 0.95)
+    generator.settings.top_p = float(kwargs.get("top_p") or 0.65)
     generator.settings.min_p = float(kwargs.get("min_p") or 0.0)
-    generator.settings.token_repetition_penalty_max = float(kwargs.get("repetition_penalty") or 0.50)
+    generator.settings.token_repetition_penalty_max = float(kwargs.get("repetition_penalty") or 1.15)
     generator.settings.token_repetition_penalty_sustain = int(kwargs.get("repetition_penalty_sustain") or 256)
     generator.settings.token_repetition_penalty_decay = generator.settings.token_repetition_penalty_sustain // 2
     generator.settings.beams = int(kwargs.get("beams") or 1)
     generator.settings.beam_length = int(kwargs.get("beam_length") or 1)
     generator.lora = LLM.lora
 
-    max_tokens = kwargs.get("max_tokens", 512)
+    max_tokens = int(kwargs.get("max_tokens") or 512)
     break_on_newline = False
 
     participants = [LLM.user, LLM.bot]
@@ -121,35 +131,34 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     else:
         # Stop generation if a newline followed by a participant is generated.
         for part in participants:
-            txt = part + ":"
-            sc = LLM.tokenizer.encode(txt)
+            sc = LLM.tokenizer.encode(part)
             sc = torch.cat((newline_token, sc), dim=1)
-            stop_conditions.append((sc, "\n" + txt))
-            stop_conditions.append((sc, "\n " + txt))
+            stop_conditions.append((sc, "\n" + part))
+            stop_conditions.append((sc, "\n " + part))
 
-    # Clean up the input a bit
-    user_input = user_input.strip()
+    prompt = prompt.strip()
 
-    if len(user_input) == 0:
+    if len(prompt) == 0:
         # No prompt given
         generator.gen_begin_empty()
         prompt_tok = 0
     else:
         # Set the context/user input
-        prompt_tokens = LLM.tokenizer.encode(user_input)
+        prompt_tokens = LLM.tokenizer.encode(prompt)
         generator.gen_begin_reuse(prompt_tokens)
         prompt_tok = prompt_tokens.shape[-1]
 
     total_tokens = [0] # list needed to pass by ref.
 
-    if stream:
-        yield user_input + " "
-        yield from _stream_helper(generator, stop_conditions, max_tokens, total_tokens)
-        t1.done("Stream complete.")
-    else:
-        # Combine all yields.
-        output = "".join(list(_stream_helper(generator, stop_conditions, max_tokens, total_tokens)))
-        t1.done("Response: {}", output)
+    output = ""
+    # if stream:
+    #     yield prompt + " "
+    #     yield from _stream_helper(generator, stop_conditions, max_tokens, total_tokens)
+    #     t1.done("Stream complete.")
+
+    # Combine all yields.
+    output = "".join(list(_stream_helper(generator, stop_conditions, max_tokens, total_tokens)))
+    t1.done("Response: {}", output)
 
     return output, prompt_tok, total_tokens[0], round(1000 * t1.elapsed())
 
@@ -246,15 +255,20 @@ def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
 if __name__ == "__main__":
     model = "/home/user/models/TheBloke_stable-vicuna-13B-GPTQ/stable-vicuna-13B-GPTQ-4bit.compat.no-act-order.safetensors"
     init_exllama_model(model)
-    print("Load OK")
+    LLM.user = "### Human:"
+    LLM.bot = "### Assistant:"
 
     # print(simple("### Human: Hello there!\n### Assistant:"))
 
-    print("Streaming ...")
-    for resp in get_exllama_response("""
+    prompt = """
     A chat between two friends where one of them is a bit too eager to share their opinions and experiences.
     ### Human: What is the meaning of life?
-    ### Assistant:""", stream=True):
-        print(resp, end="")
-        sys.stdout.flush()
+    ### Assistant:"""
 
+    # print("Streaming ...")
+    # for resp in get_exllama_response(prompt, stream=True):
+    #     print(resp, end="")
+    #     sys.stdout.flush()
+
+    print("Printing ...")
+    print(get_exllama_response(prompt, stream=False))
