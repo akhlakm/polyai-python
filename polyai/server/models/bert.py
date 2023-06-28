@@ -20,7 +20,6 @@ def init_hf_bert(model_path):
     """
     from transformers import AutoModelForTokenClassification, AutoTokenizer, pipeline
 
-    utils.unload_model()
     t1 = log.trace("Loading BERT model: {}", model_path)
     utils.vram_usage()
 

@@ -24,17 +24,3 @@ def vram_usage():
     t = mem[1]/1024/1024/1024
     log.info("VRAM usage: %0.4f GB / %0.4f GB" %(o, t))
     return o, t
-
-
-def unload_model():
-    """ Attempt to clear the momery by unloading any
-    existing model.
-    """
-    if polyai.server.model is not None:
-        t1 = log.trace("Unloading current model.")
-        polyai.server.model = None
-        polyai.server.token = None
-        polyai.server.pipeline = None
-        gc.collect()
-        torch.cuda.empty_cache()
-        t1.done("Unloaded current model.")
