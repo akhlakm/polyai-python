@@ -46,6 +46,7 @@ docker-server-entry() {
     docker-entry
     source .docker_env/bin/activate  || exit 102
 
+    # Uncomment to reinstall
     # pip install -e .
     # pip install -e .[server]
 
