@@ -191,7 +191,7 @@ def response_for_json(js : dict):
 
 
     js['prompt'] = message
-    return models.get_exllama_response(message, stream=False, **js)
+    return models.get_exllama_response(stream=False, **js)
 
 
 def validate(name : str, ptype : callable, d : dict):
