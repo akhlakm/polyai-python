@@ -37,9 +37,11 @@ def create_ssh_tunnel():
     passwd = os.environ.get("SSH_PASSWORD")
 
     if host is None or usernm is None:
-        raise ValueError("Please make sure that SSH_TUNNEL_HOST, "
-                         "SSH_USERNAME and SSH_PASSWORD environment "
-                         "variables are defined and loaded.")
+        print("Not creating SSH tunnel.")
+        print("To use SSH tunnel, make sure SSH_TUNNEL_HOST, "
+              "SSH_USERNAME and SSH_PASSWORD environment "
+              "variables are correctly defined and loaded.")
+        return None
 
     # API endpoint
     llm_host = os.environ.get("LLM_HOST", None)
