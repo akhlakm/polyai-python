@@ -49,6 +49,7 @@ docker-server-entry() {
     # Uncomment to reinstall
     # pip install -e .
     # pip install -e .[server]
+    spacy download en_core_web_sm
 
     python -m polyai server
     # /bin/bash --init-file <(echo ". .bashrc; . .docker_env/bin/activate")
