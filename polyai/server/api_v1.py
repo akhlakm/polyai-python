@@ -1,6 +1,4 @@
 import os
-import time
-import json
 from threading import Thread
 
 from flask import (
@@ -11,8 +9,7 @@ from flask import (
 import pylogg
 import polyai.server
 from polyai.server import models
-from polyai.server import database
-from polyai.server import orm
+from polyai.server import utils
 
 # API version
 __version__ = "1.0"
@@ -49,10 +46,10 @@ def bert_ner():
     c_tok = 0
 
     # id of the chat request
-    idStr = create_idStr("ner")
+    idStr = utils.create_idStr("ner")
 
     # convert to openai like json format
-    payload = make_response_dict(idStr, 'bert.ner',
+    payload = utils.make_response_dict(idStr, 'bert.ner',
                                  polyai.server.modelName, dt,
                                  prompt_tok=p_tok, compl_tok=c_tok, ner=ner)
 
@@ -60,7 +57,7 @@ def bert_ner():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    Thread(target=store, args=(text, payload, resp.headers,
+    Thread(target=utils.store, args=(text, payload, resp.headers,
                                apiKey, request.url, request.method,
                                request.headers)).start()
     
@@ -96,11 +93,11 @@ def chat_completions():
     texts, p_tok, c_tok, dt = output
 
     # id of the chat request
-    idStr = create_idStr("chcmpl")
+    idStr = utils.create_idStr("chcmpl")
 
     # convert to openai like json format
-    ch = [make_choice_dict(r, 'stop') for r in texts]
-    payload = make_response_dict(idStr, 'chat.completions',
+    ch = [utils.make_choice_dict(r, 'stop') for r in texts]
+    payload = utils.make_response_dict(idStr, 'chat.completions',
                                  polyai.server.modelName, dt,
                                  prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
 
@@ -108,7 +105,7 @@ def chat_completions():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    Thread(target=store, args=(inputs, payload, resp.headers,
+    Thread(target=utils.store, args=(inputs, payload, resp.headers,
                                apiKey, request.url, request.method,
                                request.headers)).start()
     
@@ -127,6 +124,18 @@ def index():
     return message
 
 
+def validate(name : str, ptype : callable, d : dict):
+    """ Validate a dictionary item by typecasting. """
+    value = d.get(name, None)
+    if value is not None:
+        try:
+            value = ptype(value)
+        except:
+            abort(400, f"invalid type for {name}")
+    d[name] = value
+    return d
+
+
 def response_for_json(js : dict):
     """
     Construct a instruct prompt with the request json.
@@ -139,29 +148,19 @@ def response_for_json(js : dict):
     """
     log.trace("JSON request: {}", js)
 
+    # Check types
+    validate('temperature', float, js)
+    validate('max_tokens', int, js)
+    validate('min_tokens', int, js)
+    validate('prompt', str, js)
+    validate('top_p', float, js)
+    validate('top_k', int, js)
+
     # Parse the json request
     messages = js.get("messages")
     prompt = js.get("prompt")
-    temperature = js.get("temperature")
-    max_tokens = js.get("max_tokens")
-    min_tokens = js.get("min_tokens")
-    top_p = js.get("top_p")
-
-    # Create gptq parameter set
-    inputs = {}
-    try:
-        if temperature:
-            inputs['temp'] = float(temperature)
-        if max_tokens:
-            inputs['maxlen'] = int(max_tokens)
-        if min_tokens:
-            inputs['minlen'] = int(min_tokens)
-        if top_p:
-            inputs['top_p'] = float(top_p)
-    except:
-        abort(400, "invalid model parameter type")
-
-    # If a promt is given, ignore the messages
+    
+    # If a prompt is given, ignore the messages
     if prompt:
         if 'assistant:' in prompt.lower():
             # already formatted
@@ -207,15 +206,8 @@ def response_for_json(js : dict):
         message = f"{instruction}{message}{POLYAI_BOT_FMT}"
 
 
-    inputs['prompt'] = message
-    responses, p_tok, c_tok, dt = models.get_gptq_response(**inputs)
-
-    # remove the start end <s> tokens, and strip the input prompt
-    # @todo: this depends on the model
-    for i in range(len(responses)):
-        responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
-        # responses[i] = responses[i][3:].replace(message, "", 1).strip()
-
+    js['prompt'] = message
+    responses, p_tok, c_tok, dt = models.get_exllama_response(message, stream=False, **js)
     return responses, p_tok, c_tok, dt
 
 
@@ -231,94 +223,8 @@ def response_for_text(text : str):
     """
     log.trace("Text request: {}", text)
     message = f"{POLYAI_USER_FMT} {text} {POLYAI_BOT_FMT}"
-    responses, p_tok, c_tok, dt = models.get_gptq_response(message)
-
-    # remove the start end <s> tokens
-    # and strip the input prompt
-    for i in range(len(responses)):
-        responses[i] = responses[i][4:-4].replace(message, "", 1).strip()
-
+    responses, p_tok, c_tok, dt = models.get_exllama_response(message, stream=False)
     return responses, p_tok, c_tok, dt
-
-
-def make_response_dict(idstr : str, object : str, model : str, dt : int,
-               prompt_tok : int, compl_tok : int, choices : list = [],
-               ner : list = []):
-    
-    if len(ner) == 0 and len(choices) == 0:
-        raise ValueError("Either ner or choices need to be provided")
-    
-    # set indices
-    for i, ch in enumerate(choices):
-        choices[i]['index'] = i
-
-    for i, ch in enumerate(ner):
-        ner[i]['index'] = i
-
-    return {
-        'id': idstr,
-        'object': object,
-        'created': time.strftime("%a, %b %d %Y %X"),
-        'model': model,
-        'usage': {
-            'prompt_tokens': prompt_tok,
-            'completion_tokens': compl_tok,
-            'total_tokens': prompt_tok + compl_tok
-        },
-        'elapsed_msec': dt,
-        'choices': choices,
-        'ner_tags': ner,
-    }
-
-
-def make_choice_dict(response, finish_reason):
-    # openai like response object
-    return {
-        'message': {
-            'role': 'assistant',
-            'content': response,
-        },
-        'finish_reason': finish_reason
-    }
-
-
-def store(message, respObj, respheads, apiKey, url, method, reqheads):
-    """ Store api request and response info to database.
-        Ignore with a warning if db connection fails.
-    """
-    try:
-        db = database.connect()
-    except Exception as err:
-        log.warning("Failed to connect database: {}", err)
-        return
-
-    output = " || ".join([ch['message']['content']
-                            for ch in respObj['choices']])
-    if type(message) == dict:
-        message = json.dumps(message)
-
-    apiReq = orm.APIRequest(
-        idStr = respObj['id'],
-        apikey = apiKey,
-        requrl = url,
-        reqmethod = method,
-        model = respObj['model'],
-        request = message,
-        output = output,
-        response = respObj,
-        reqheaders = dict(reqheads),
-        respheaders = dict(respheads),
-        elapsed_msec = respObj['elapsed_msec'],
-        request_tokens = respObj['usage']['prompt_tokens'],
-        response_tokens = respObj['usage']['completion_tokens'],
-    )
-    apiReq.insert(db)
-
-
-def create_idStr(prefix):
-    """ Use milliseconds to create a unique id. """
-    idStr = str(round(time.time() * 1000))
-    return prefix + "-" + idStr
 
 
 @bp.errorhandler(400)
