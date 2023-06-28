@@ -95,6 +95,7 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     Given a prompt message, generate model response.
     
     Returns:
+        Name of the model,
         List of generated responses,
         Total input tokens,
         Total completion tokens,
@@ -148,19 +149,25 @@ def get_exllama_response(prompt, stream = False, **kwargs):
         generator.gen_begin_reuse(prompt_tokens)
         prompt_tok = prompt_tokens.shape[-1]
 
-    total_tokens = [0] # list needed to pass by ref.
+    compl_toks = [0] # list needed to pass by ref.
 
     output = ""
     # if stream:
     #     yield prompt + " "
-    #     yield from _stream_helper(generator, stop_conditions, max_tokens, total_tokens)
+    #     yield from _stream_helper(generator, stop_conditions, max_tokens, compl_toks)
     #     t1.done("Stream complete.")
 
     # Combine all yields.
-    output = "".join(list(_stream_helper(generator, stop_conditions, max_tokens, total_tokens)))
+    output = "".join(list(_stream_helper(generator, stop_conditions, max_tokens, compl_toks)))
     t1.done("Response: {}", output)
 
-    return output, prompt_tok, total_tokens[0], round(1000 * t1.elapsed())
+    return (
+        LLM.modelName,
+        output,
+        prompt_tok,
+        compl_toks[0],
+        round(1000 * t1.elapsed())
+    )
 
 
 def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):

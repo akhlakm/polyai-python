@@ -89,16 +89,15 @@ def chat_completions():
             output = response_for_text(inputs)
 
     # model text generation stats
-    texts, p_tok, c_tok, dt = output
+    model_name, texts, p_tok, c_tok, dt = output
 
     # id of the chat request
     idStr = utils.create_idStr("chcmpl")
 
     # convert to openai like json format
     ch = [utils.make_choice_dict(r, 'stop') for r in texts]
-    payload = utils.make_response_dict(idStr, 'chat.completions',
-                                 polyai.server.modelName, dt,
-                                 prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
+    payload = utils.make_response_dict(idStr, 'chat.completions', model_name, dt,
+                                       prompt_tok=p_tok, compl_tok=c_tok, choices=ch)
 
     # http response
     resp = make_response(jsonify(payload))
@@ -206,8 +205,7 @@ def response_for_json(js : dict):
 
 
     js['prompt'] = message
-    responses, p_tok, c_tok, dt = models.get_exllama_response(message, stream=False, **js)
-    return responses, p_tok, c_tok, dt
+    return models.get_exllama_response(message, stream=False, **js)
 
 
 def response_for_text(text : str):
@@ -222,8 +220,7 @@ def response_for_text(text : str):
     """
     log.trace("Text request: {}", text)
     message = f"{POLYAI_USER_FMT} {text} {POLYAI_BOT_FMT}"
-    responses, p_tok, c_tok, dt = models.get_exllama_response(message, stream=False)
-    return responses, p_tok, c_tok, dt
+    return models.get_exllama_response(message, stream=False)
 
 
 @bp.errorhandler(400)
