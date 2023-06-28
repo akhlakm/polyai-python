@@ -27,6 +27,20 @@ def parse_arguments():
 
     return args
 
+def model_path(env_var, is_file=False) -> str | None:
+    """ Check if path exists from env variable. """
+    path = os.getenv(env_var)
+    if path is None or len(path.strip()) == 0:
+        return None
+    path = os.path.join("models", path)
+    if is_file:
+        if os.path.isfile(path):
+            return path
+    else:
+        if os.path.isdir(path):
+            return path
+    return None
+
 
 def main():
     args = parse_arguments()
@@ -41,19 +55,13 @@ def main():
 
     if args.cmd == "server":
         if args.model is None:
-            modelpath = os.path.join("models", os.environ.get("POLYAI_MODEL_PATH"))
-            if os.path.isfile(modelpath):
-                args.model = modelpath
+            args.model = model_path("POLYAI_MODEL_PATH", is_file=True)
 
         if args.lora is None:
-            loradir = os.path.join("models", os.environ.get("POLYAI_LORA_DIR"))
-            if os.path.isdir(loradir):
-                args.lora = loradir
+            args.lora = model_path("POLYAI_LORA_DIR")
 
         if args.bert is None:
-            bertdir = os.path.join("models", os.environ.get("POLYAI_BERT_DIR"))
-            if os.path.isdir(bertdir):
-                args.bert = bertdir
+            args.bert = model_path("POLYAI_BERT_DIR")
 
         if args.model is not None:
             # models.init_gptq_model(args.model)
