@@ -63,6 +63,8 @@ docker-test-entry() {
         pip install transformers datasets evaluate peft safetensors
     fi
 
+    mkdir -p .docker_env/app
+    ln -s .docker_env/app app
     source .docker_env/bin/activate  || exit 102
 
     ## Start terminal
