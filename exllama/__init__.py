@@ -203,7 +203,7 @@ def simple(prompt : str | list[str], max_tokens = 20) -> str | list[str]:
                                         max_new_tokens=max_tokens)
 
 
-def stream(generator, stop_conditions, max_tokens, total_tokens):
+def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
     # Generate loop
     # Beam search uses conditional probability to find the
     # best output tokens
@@ -326,7 +326,7 @@ def generate(user_input, participants, **kwargs):
     begin_time = time.time()
     total_tokens = [0] # list needed to pass by ref.
 
-    yield from stream(generator, stop_conditions, max_tokens, total_tokens)
+    yield from _stream_helper(generator, stop_conditions, max_tokens, total_tokens)
 
     end_time = time.time()
     elapsed = end_time - begin_time
