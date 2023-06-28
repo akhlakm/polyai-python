@@ -7,7 +7,6 @@ from flask import (
 )
 
 import pylogg
-import polyai.server
 from polyai.server import models
 from polyai.server import utils
 
@@ -23,6 +22,16 @@ POLYAI_BOT_FMT = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 bp = Blueprint("apiv1", __name__)
 
 log = pylogg.New("endpoint")
+
+
+@bp.route('/', methods=["GET"])
+def index():
+    """ Handle the get requests with a simple page. """
+    message  = f"Welcome to PolyAI API v{__version__}.\n"
+    message += "Please send a post request to talk to the LLM.\n"
+    message += 'Shell example :\n\n\tcurl http://localhost:8080/api/chat/completions -d "hello"\n'
+
+    return message
 
 
 @bp.route('/bert/ner', methods = ['POST'])
@@ -111,29 +120,6 @@ def chat_completions():
     return resp
 
 
-@bp.route('/', methods=["GET"])
-def index():
-    """ Handle the get requests with a simple page. """
-    message  = f"Welcome to PolyAI API v{__version__}.\n"
-    message += f"Current model: {polyai.server.modelName}\n"
-    message += "Please send a post request to talk to the LLM.\n"
-    message += 'Shell example :\n\n\tcurl http://localhost:8080/api/chat/completions -d "hello"\n'
-
-    return message
-
-
-def validate(name : str, ptype : callable, d : dict):
-    """ Validate a dictionary item by typecasting. """
-    value = d.get(name, None)
-    if value is not None:
-        try:
-            value = ptype(value)
-        except:
-            abort(400, f"invalid type for {name}")
-    d[name] = value
-    return d
-
-
 def response_for_json(js : dict):
     """
     Construct a instruct prompt with the request json.
@@ -206,6 +192,18 @@ def response_for_json(js : dict):
 
     js['prompt'] = message
     return models.get_exllama_response(message, stream=False, **js)
+
+
+def validate(name : str, ptype : callable, d : dict):
+    """ Validate a dictionary item by typecasting. """
+    value = d.get(name, None)
+    if value is not None:
+        try:
+            value = ptype(value)
+        except:
+            abort(400, f"invalid type for {name}")
+    d[name] = value
+    return d
 
 
 def response_for_text(text : str):
