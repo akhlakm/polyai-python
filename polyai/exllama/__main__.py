@@ -1,3 +1,8 @@
+"""
+ExLlama script to perform tests inside a docker environment.
+
+"""
+
 import sys
 from . import load_model, generate, simple
 
