@@ -100,6 +100,8 @@ def chat_completions():
     # model text generation stats
     model_name, texts, p_tok, c_tok, dt = output
 
+    assert type(texts) == list, "model response must be a list of str"
+
     # id of the chat request
     idStr = utils.create_idStr("chcmpl")
 

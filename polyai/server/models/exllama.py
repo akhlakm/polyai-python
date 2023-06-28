@@ -163,7 +163,7 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     return (
         LLM.modelName,
-        output,
+        [output],
         prompt_tok,
         compl_toks[0],
         round(1000 * t1.elapsed())
