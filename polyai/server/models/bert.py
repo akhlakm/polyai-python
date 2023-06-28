@@ -2,10 +2,14 @@ import os
 from collections import namedtuple
 
 import pylogg
-import polyai.server
-from polyai.server.models import utils
+from . import utils
 
 log = pylogg.New("llm")
+
+class BERT:
+    """ Global variables """
+    modelName : str = None
+    pipeline = None
 
 
 def init_hf_bert(model_path):
@@ -20,19 +24,19 @@ def init_hf_bert(model_path):
     t1 = log.trace("Loading BERT model: {}", model_path)
     utils.vram_usage()
 
-    polyai.server.modelName = os.path.basename(model_path).split(".")[0]
+    BERT.modelName = os.path.basename(model_path).split(".")[0]
 
-    polyai.server.token = AutoTokenizer.from_pretrained(model_path, model_max_length=512)
-    polyai.server.model = AutoModelForTokenClassification.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, model_max_length=512)
+    model = AutoModelForTokenClassification.from_pretrained(model_path)
 
     # Load model and tokenizer
-    polyai.server.pipeline = pipeline(task="ner",
-                                      model=polyai.server.model,
-                                      tokenizer=polyai.server.token,
-                                      aggregation_strategy="simple",
-                                      device="cuda:0")
+    BERT.pipeline = pipeline(task="ner",
+                            model=model,
+                            tokenizer=tokenizer,
+                            aggregation_strategy="simple",
+                            device="cuda:0")
 
-    t1.done("Model loaded: {}", model_path)
+    t1.done("Model loaded: {}", BERT.modelName)
     utils.vram_usage()
 
 
@@ -40,15 +44,21 @@ def get_bert_ner(text):
     """
     Perform NER using the loaded BERT model on the given text.
     Returns:
+        Model name,
         List of generated NER tags as a dict format,
         Total time elapsed in miliseconds.
     """
     t1 = log.trace("Getting NER for: {}", text)
-    ner_output = polyai.server.pipeline(text)
+    ner_output = BERT.pipeline(text)
     print(ner_output)
     ner_tuples = _ner_feed(ner_output, text)
     t1.done("NER processed")
-    return [tup._asdict() for tup in ner_tuples], round(1000 * t1.elapsed())
+
+    return (
+        BERT.modelName,
+        [tup._asdict() for tup in ner_tuples],
+        round(1000 * t1.elapsed())
+    )
 
 
 def _ner_feed(seq_pred, text) -> list[namedtuple]:

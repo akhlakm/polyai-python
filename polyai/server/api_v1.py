@@ -41,7 +41,7 @@ def bert_ner():
         if not text:
             abort(400, "no input received")
 
-    ner, dt = models.get_bert_ner(text)
+    mname, ner, dt = models.get_bert_ner(text)
     p_tok = 0
     c_tok = 0
 
@@ -49,9 +49,8 @@ def bert_ner():
     idStr = utils.create_idStr("ner")
 
     # convert to openai like json format
-    payload = utils.make_response_dict(idStr, 'bert.ner',
-                                 polyai.server.modelName, dt,
-                                 prompt_tok=p_tok, compl_tok=c_tok, ner=ner)
+    payload = utils.make_response_dict(idStr, 'bert.ner', mname, dt,
+                                       prompt_tok=p_tok, compl_tok=c_tok, ner=ner)
 
     # http response
     resp = make_response(jsonify(payload))
