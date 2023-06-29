@@ -17,10 +17,10 @@ def spacy_nlp(doc : str):
 def vram_usage():
     """ Log and return the vram usage.
     Returns:
-        current usage, total vram
+        current usage, total vram, free vram
     """
     mem = torch.cuda.mem_get_info()
-    o = mem[0]/1024/1024/1024
-    t = mem[1]/1024/1024/1024
-    log.info("VRAM usage: %0.4f GB / %0.4f GB" %(o, t))
-    return o, t
+    free = mem[0]/1024/1024/1024
+    total = mem[1]/1024/1024/1024
+    log.info("VRAM usage: %0.4f GB / %0.4f GB (%0.4f GB free)" %(total-free, total, free))
+    return total - free, total, free
