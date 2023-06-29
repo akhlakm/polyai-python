@@ -15,9 +15,6 @@ from polyai.api.helpers import (
 
 # Load the env variables.
 load_dotenv()
-
-# Uncomment this to use ssh tunnel. Make sure to
-# add hostname, username and password in the .env file.
 create_ssh_tunnel()
 
 print("Sending api request.")

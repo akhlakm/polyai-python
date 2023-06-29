@@ -15,7 +15,10 @@ from polyai.api.helpers import (
 # Load the env variables and set the API key.
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
+create_ssh_tunnel()
+
 polyai.api.api_key = os.environ.get("POLYAI_API_KEY")
 
 # Uncomment this to use ssh tunnel. Make sure to
