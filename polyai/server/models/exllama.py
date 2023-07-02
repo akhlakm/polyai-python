@@ -24,8 +24,8 @@ class LLM:
     lora : ExLlamaLora = None
     args : argparse.Namespace = None
     system : str = ""
-    user : str = os.getenv("POLYAI_USER_FMT", "USER:")
-    bot  : str = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
+    user : str = None
+    bot : str = None
 
 
 def init_exllama_model(modelpath, lora_dir = None):
@@ -68,6 +68,9 @@ def init_exllama_model(modelpath, lora_dir = None):
     LLM.cache = cache
     LLM.lora = lora
     LLM.modelName = os.path.basename(modelpath).split(".")[0]
+    LLM.user = os.getenv("POLYAI_USER_FMT", "USER:")
+    LLM.bot = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
+
 
     model_init.print_stats(LLM.model)
     t1.done("Model loaded: {}", LLM.modelName)
