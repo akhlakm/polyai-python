@@ -13,6 +13,7 @@ from polyai.exllama.generator import ExLlamaGenerator
 
 from polyai.server.models import utils
 
+EPS = 1e-10
 
 class LLM:
     """ Global variables """
@@ -110,15 +111,15 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     generator = ExLlamaGenerator(LLM.model, LLM.tokenizer, LLM.cache)
     generator.settings = ExLlamaGenerator.Settings()
-    generator.settings.temperature = float(kwargs.get("temperature") or 0.1)
-    generator.settings.top_k = int(kwargs.get("top_k") or 20)
-    generator.settings.top_p = float(kwargs.get("top_p") or 0.95)
-    generator.settings.min_p = float(kwargs.get("min_p") or 0.0)
-    generator.settings.token_repetition_penalty_max = float(kwargs.get("repetition_penalty") or 1.0)
-    generator.settings.token_repetition_penalty_sustain = int(kwargs.get("repetition_penalty_sustain") or 256)
+    generator.settings.temperature = float(kwargs.get("temperature", 0.1))
+    generator.settings.top_k = int(kwargs.get("top_k", 5))
+    generator.settings.top_p = float(kwargs.get("top_p", 0.95))
+    generator.settings.min_p = float(kwargs.get("min_p", 0.0))
+    generator.settings.token_repetition_penalty_max = float(kwargs.get("repetition_penalty", 1.0))
+    generator.settings.token_repetition_penalty_sustain = int(kwargs.get("repetition_penalty_sustain", 256))
     generator.settings.token_repetition_penalty_decay = generator.settings.token_repetition_penalty_sustain // 2
-    generator.settings.beams = int(kwargs.get("beams") or 1)
-    generator.settings.beam_length = int(kwargs.get("beam_length") or 1)
+    generator.settings.beams = int(kwargs.get("beams", 1))
+    generator.settings.beam_length = int(kwargs.get("beam_length", 1))
     generator.lora = LLM.lora
 
     log.trace("Generation settings: {}", str(generator.settings.__dict__))
