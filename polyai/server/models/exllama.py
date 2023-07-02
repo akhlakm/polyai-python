@@ -94,6 +94,14 @@ def load_exllama_lora(model, loradir = None) -> ExLlamaLora:
     return lora
 
 
+def get_default(ftype : callable, name, default, **kwargs):
+    try:
+        value = ftype(kwargs.get(name))
+    except:
+        value = default
+    return value
+
+
 def get_exllama_response(prompt, stream = False, **kwargs):
     """
     Given a prompt message, generate model response.
@@ -111,20 +119,20 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     generator = ExLlamaGenerator(LLM.model, LLM.tokenizer, LLM.cache)
     generator.settings = ExLlamaGenerator.Settings()
-    generator.settings.temperature = float(kwargs.get("temperature", 0.1))
-    generator.settings.top_k = int(kwargs.get("top_k", 5))
-    generator.settings.top_p = float(kwargs.get("top_p", 0.95))
-    generator.settings.min_p = float(kwargs.get("min_p", 0.0))
-    generator.settings.token_repetition_penalty_max = float(kwargs.get("repetition_penalty", 1.0))
-    generator.settings.token_repetition_penalty_sustain = int(kwargs.get("repetition_penalty_sustain", 256))
+    generator.settings.temperature = get_default(float, "temperature", 0.1, **kwargs)
+    generator.settings.top_k = get_default(int, "tok_k", 2, **kwargs)
+    generator.settings.top_p = get_default(float, "top_p", 0.95, **kwargs)
+    generator.settings.min_p = get_default(float, "min_p", 0.0, **kwargs)
+    generator.settings.token_repetition_penalty_max = get_default(float, "repetition_penalty", 1.15, **kwargs)
+    generator.settings.token_repetition_penalty_sustain = get_default(int, "repetition_penalty_sustain", 256, **kwargs)
     generator.settings.token_repetition_penalty_decay = generator.settings.token_repetition_penalty_sustain // 2
-    generator.settings.beams = int(kwargs.get("beams", 1))
-    generator.settings.beam_length = int(kwargs.get("beam_length", 1))
+    generator.settings.beams = get_default(int, "beams", 1, **kwargs)
+    generator.settings.beam_length = get_default(int, "beam_length", 1, **kwargs)
     generator.lora = LLM.lora
 
     log.trace("Generation settings: {}", str(generator.settings.__dict__))
 
-    max_tokens = int(kwargs.get("max_tokens") or 512)
+    max_tokens = get_default(int, "max_tokens", 512, **kwargs)
     break_on_newline = False
     log.trace("Max tokens: {}", max_tokens)
 
