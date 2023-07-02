@@ -103,6 +103,7 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     """
 
     t1 = log.trace("Getting LLM response for: {}", prompt)
+    log.trace("Extra params: {}", kwargs.keys())
 
     generator = ExLlamaGenerator(LLM.model, LLM.tokenizer, LLM.cache)
     generator.settings = ExLlamaGenerator.Settings()
@@ -117,10 +118,14 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     generator.settings.beam_length = int(kwargs.get("beam_length") or 1)
     generator.lora = LLM.lora
 
+    log.trace("Generation settings: {}", str(generator.settings.__dict__))
+
     max_tokens = int(kwargs.get("max_tokens") or 512)
     break_on_newline = False
+    log.trace("Max tokens: {}", max_tokens)
 
     participants = [LLM.user, LLM.bot]
+    log.trace("Participants: {}", participants)
 
     # Prepare stop conditions
     stop_conditions = []
