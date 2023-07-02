@@ -52,6 +52,7 @@ def main():
 
     log.setFile(open("polyai.log", "a+"))
     log.setConsoleTimes(show=True)
+    log.setMaxLength(1000)
 
     if args.cmd == "server":
         if args.model is None:

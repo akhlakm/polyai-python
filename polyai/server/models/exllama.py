@@ -115,7 +115,7 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     """
 
     t1 = log.trace("Getting LLM response for: {}", prompt)
-    log.trace("Extra params: {}", kwargs.keys())
+    log.trace("Extra params: {}", kwargs)
 
     generator = ExLlamaGenerator(LLM.model, LLM.tokenizer, LLM.cache)
     generator.settings = ExLlamaGenerator.Settings()
