@@ -191,9 +191,13 @@ def response_for_json(js : dict):
         # add the final string for assistant
         message = f"{instruction}{message}{POLYAI_BOT_FMT}"
 
-
     js['prompt'] = message
-    return models.get_exllama_response(stream=False, **js)
+
+    try:
+        response = models.get_exllama_response(stream=False, **js)
+    except ConnectionError:
+        abort(409, "Model not ready.")
+    return response
 
 
 def validate(name : str, ptype : callable, d : dict):
@@ -220,7 +224,11 @@ def response_for_text(text : str):
     """
     log.trace("Text request: {}", text)
     message = f"{POLYAI_USER_FMT} {text} {POLYAI_BOT_FMT}"
-    return models.get_exllama_response(message, stream=False)
+    try:
+        response = models.get_exllama_response(message, stream=False)
+    except ConnectionError:
+        abort(409, "Model not ready.")
+    return response
 
 
 @bp.errorhandler(400)

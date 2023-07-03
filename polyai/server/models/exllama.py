@@ -27,6 +27,7 @@ class LLM:
     system : str = ""
     user : str = None
     bot : str = None
+    ready : bool = False
 
 
 def init_exllama_model(modelpath, lora_dir = None):
@@ -71,6 +72,7 @@ def init_exllama_model(modelpath, lora_dir = None):
     LLM.modelName = os.path.basename(modelpath).split(".")[0]
     LLM.user = os.getenv("POLYAI_USER_FMT", "USER:")
     LLM.bot = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
+    LLM.ready = True
 
 
     model_init.print_stats(LLM.model)
@@ -114,6 +116,9 @@ def get_exllama_response(prompt, stream = False, **kwargs):
         Total time elapsed in miliseconds.
     """
 
+    if not LLM.ready:
+        raise ConnectionError("Model not ready.")
+
     t1 = log.trace("Getting LLM response for: {}", prompt)
     log.trace("Extra params: {}", kwargs)
 
@@ -138,6 +143,8 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     participants = [LLM.user, LLM.bot]
     log.trace("Participants: {}", participants)
+
+    LLM.ready = False
 
     # Prepare stop conditions
     stop_conditions = []
@@ -176,6 +183,7 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     # Combine all yields.
     output = "".join(list(_stream_helper(generator, stop_conditions, max_tokens, compl_toks)))
+    LLM.ready = True
     t1.done("Response: {}", output)
 
     return (
