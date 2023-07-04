@@ -186,6 +186,9 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     LLM.ready = True
     t1.done("Response: {}", output)
 
+    print(prompt, end="")
+    print(output)
+
     return (
         LLM.modelName,
         [output],
