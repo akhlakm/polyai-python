@@ -30,13 +30,16 @@ class LLM:
     ready : bool = False
 
 
-def init_exllama_model(modelpath, lora_dir = None):
+def init_exllama_model(args):
     """
     Load a pretrained 4 bit GPTQ model using ExLlama.
     Arguments:
         modelname str : path to model safetensor file
         lora_dir  str : path to lora directory
     """
+    modelpath = args.model
+    lora_dir = args.lora
+    vram = args.vram
 
     t1 = log.trace("Loading ExLlama model: {}", modelpath)
     if lora_dir:
@@ -49,23 +52,24 @@ def init_exllama_model(modelpath, lora_dir = None):
     # Default exllama options
     parser = argparse.ArgumentParser(description = "ExLlama")
     model_init.add_args(parser)
-    args = parser.parse_args(args=[])
+    xargs = parser.parse_args(args=[])
 
     # Overrides/settings
-    args.directory = os.path.dirname(modelpath)
-    # args.gpu_split = "0,0,16,16"
+    xargs.directory = os.path.dirname(modelpath)
+    if vram is not None:
+        xargs.gpu_split = vram
 
     # Post process the arguments
-    model_init.get_model_files(args)
+    model_init.get_model_files(xargs)
 
     # Load the model, tokenizer and lora if any
-    config = model_init.make_config(args)
+    config = model_init.make_config(xargs)
     model = ExLlama(config)
     cache = ExLlamaCache(model)
-    tokenizer = ExLlamaTokenizer(args.tokenizer)
+    tokenizer = ExLlamaTokenizer(xargs.tokenizer)
     lora = load_exllama_lora(model, lora_dir)
 
-    LLM.args = args
+    LLM.args = xargs
     LLM.model = model
     LLM.tokenizer = tokenizer
     LLM.cache = cache
@@ -74,7 +78,6 @@ def init_exllama_model(modelpath, lora_dir = None):
     LLM.user = os.getenv("POLYAI_USER_FMT", "USER:")
     LLM.bot = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
     LLM.ready = True
-
 
     model_init.print_stats(LLM.model)
     t1.done("Model loaded: {}", LLM.modelName)
@@ -121,7 +124,6 @@ def get_exllama_response(prompt, stream = False, **kwargs):
         raise ConnectionError("Model not ready.")
 
     t1 = log.trace("Getting LLM response for: {}", prompt)
-    log.trace("Extra params: {}", kwargs)
 
     generator = ExLlamaGenerator(LLM.model, LLM.tokenizer, LLM.cache)
     generator.settings = ExLlamaGenerator.Settings()
@@ -182,14 +184,15 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     #     yield from _stream_helper(generator, stop_conditions, max_tokens, compl_toks)
     #     t1.done("Stream complete.")
 
-    # Combine all yields.
-    output = "".join(list(_stream_helper(generator, stop_conditions, max_tokens, compl_toks)))
-    LLM.ready = True
-    t1.done("Response: {}", output)
-
     print("-"*80)
     print(prompt, end="")
-    print(output)
+
+    for out in _stream_helper(generator, stop_conditions, max_tokens, compl_toks):
+        output += out
+        print(out)
+
+    LLM.ready = True
+    t1.done("Response: {}", output)
     print("-"*80)
 
     return (

@@ -19,6 +19,7 @@ def parse_arguments():
     parser.add_argument("--model", default=None, help="LLM model safetensors or pt to load")
     parser.add_argument("--lora", default=None, help="Path to LoRA directory to load")
     parser.add_argument("--bert", default=None, help="Path to BERT model directory")
+    parser.add_argument("--vram", default=None, help="Comma seperated max VRAM usage for the GPUs")
 
     parser.add_argument("--debug", default=True, action='store_true',
                         help="enable debugging")
@@ -70,7 +71,7 @@ def main():
 
         if args.model is not None:
             # models.init_gptq_model(args.model)
-            models.init_exllama_model(args.model, args.lora)
+            models.init_exllama_model(args)
         else:
             log.error("No valid modelpath specified. Models can specified using the --model argument.")
             log.error("Alternatively, set the POLYAI_MODEL_PATH relative to ./models/ directory.")
