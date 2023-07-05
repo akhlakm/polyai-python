@@ -57,6 +57,9 @@ def init_exllama_model(args):
     # Overrides/settings
     xargs.directory = os.path.dirname(modelpath)
     if vram is not None:
+        assert "," in vram, "--vram must be a comma separated string"
+        assert " " not in vram, "--vram must be a comma separated string without any space"
+        log.info("Using GPU map: {} GB", vram)
         xargs.gpu_split = vram
 
     # Post process the arguments
@@ -189,11 +192,11 @@ def get_exllama_response(prompt, stream = False, **kwargs):
 
     for out in _stream_helper(generator, stop_conditions, max_tokens, compl_toks):
         output += out
-        print(out)
-
+        print(out, end="")
     LLM.ready = True
+
+    print("\n", "-"*80)
     t1.done("Response: {}", output)
-    print("-"*80)
 
     return (
         LLM.modelName,
