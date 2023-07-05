@@ -53,6 +53,7 @@ def init_exllama_model(modelpath, lora_dir = None):
 
     # Overrides/settings
     args.directory = os.path.dirname(modelpath)
+    # args.gpu_split = "0,0,16,16"
 
     # Post process the arguments
     model_init.get_model_files(args)
@@ -186,8 +187,10 @@ def get_exllama_response(prompt, stream = False, **kwargs):
     LLM.ready = True
     t1.done("Response: {}", output)
 
+    print("-"*80)
     print(prompt, end="")
     print(output)
+    print("-"*80)
 
     return (
         LLM.modelName,
