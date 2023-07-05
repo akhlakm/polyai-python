@@ -41,3 +41,7 @@ print(resp['choices'][0]['message']['content']) # response text
 
 See the [tests directory](/tests) for more example scripts.
 
+## Todos
+- [ ] Implement Langchain with polyai.
+- [ ] Move arguments parsing to the `__main__.py` file.
+- [ ] Add QLora training module.
