@@ -46,13 +46,17 @@ def main():
     args = parse_arguments()
     if args.debug:
         log.setLevel(log.DEBUG)
+        log.setMaxLength(2000)
+        log.setFile(open("polyai.log", "a+"))
+        log.setFileTimes(show=False)
+    else:
+        log.setLevel(log.INFO)
+        log.setMaxLength(1000)
+        log.setFile(open("polyai.log", "a+"))
+        log.setConsoleTimes(show=True)
 
     if not dotenv.load_dotenv():
         raise RuntimeError("ENV not loaded")
-
-    log.setFile(open("polyai.log", "a+"))
-    log.setConsoleTimes(show=True)
-    log.setMaxLength(1000)
 
     if args.cmd == "server":
         if args.model is None:
