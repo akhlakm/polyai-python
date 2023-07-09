@@ -25,30 +25,28 @@ resp, ptok, ctok, req = instruct_prompt(
 Here is a table, it's caption and relevant description.
 
 Description:
-PU matrixTo be able to distinguish the dielectric properties of the pure matrix from that of composites in the experimental dielectric spectra, we first consider the properties of the PU matrix.
-PU UR 3420 is a thermoplastic polymer with semicrystalline morphology, which is clearly indicated by DSC (Table I).
-The DSC results show a glass transition (Tg) around a80aAdegC and the following melting points (Tm) of crystalline phases: first around a13aAdegC and the second around +4aAdegC.
-inset).
-It should be noted that the glass transition temperature of a HC is lower than that of pure PU by about 40aAdegC (Table I).
-Table I.
-It should be noted that the glass transition temperature of a HC is lower than that of pure PU by about 40aAdegC (Table I).
-Table I.
-The main characteristic temperatures of PU and HC: DSC measurements.
-FIG.
-PPT|High-resolutionIn the low-temperature interval of a30a10aAdegC (see Table I for melting points), there is another relaxation process.
-Figure 1 shows that the real part of permittivity in this temperature interval depends strongly on frequency; this fact manifests itself in the peaks of Iua3(f).
+PPT|High-resolutionDSC traces for different polymer electrolytes, taken during second heating process to remove any thermal history, are shown in Fig.
+The glass transition temperature (Tg), melting temperature (Tm), and melting enthalpy (IHm) have been calculated from the DSC data and are listed in Table I.
+K with the addition of PC to PEO-LiClO4 polymer electrolyte.
+Good fits to VTF formula in the entire temperature range clearly indicate that the Li+ ionic motion is coupled with the polymer segmental motion in these polymer electrolytes.
+The parameters obtained from VTF fits are shown in Table I.
+It is observed in the table that the values of (TgaT0) are in the range 70 K - 80 K, which is consistent with the values observed for other PEO bases electrolytes.
 
 Caption:
-Table I. The main characteristic temperatures of PU and HC: DSC measurements. (Tg is the glass transition temperature, Tc is the crystallization temperature, Tm is the melting temperature, and Tdeg is the degradation temperature.)
+TABLE I. Glass transition and melting temperatures, percentage of crystalline phase (XC %), Ea and T0 obtained from VTF formalism for PEO-LiClO4-X wt. % PC electrolytes.
 
 Table:
-          1       2        3        4        5        6       7         8
-0  Material  Tg (C)  Tc1 (C)  Tc2 (C)  Tm1 (C)  Tm2 (C)  Tm (C)  Tdeg (C)
-1        PU      98       60       36        4       13     117       299
-2        HC     136                37        1       11     112       272
+                      1             2              3       4                5           6
+0  PC content X (wt. %)  Tg (K)(0.02)  Tm (K) (0.02)  XC (%)  Ea (eV) (0.002)  T0 (K) (2)
+1                     0        244.79         334.38   39.08            0.094         174
+2                    10        243.96         331.63   37.81            0.107         164
+3                    20        242.73         330.84    37.9            0.146         154
+4                    30        242.21         326.98   36.01            0.073         171
+5                    40        233.81         323.27    23.7            0.092         157
+6                    50        245.84         332.48    34.7            0.112         167
 
-Infer the method of the measurements. Do not explain your thoughts.
-Finally, extract the Tg values as JSONL format with the fields: PolymerName, PropertyName, PropertyValue, PropertyUnit, MeasurementMethod.
+Infer the method of the measurements for the Tg values. Do not explain your thoughts.
+Finally, extract only the Tg values as JSONL format with the fields: PolymerName, PropertyName, PropertyValue, PropertyUnit, MeasurementMethod, MeasurementComposition.
 """,
     shots = [],
     temperature = 0.0001,
@@ -61,3 +59,29 @@ print("Tokens (prompt completion) =", ptok, ctok)
 print("Generation time =", generation_time(resp)/1000, "sec")
 print("Tokens per second =", tok_per_sec(resp), "\n")
 print(model_reply(resp))
+
+## Sample output: Guanaco 65B
+## ---------------------------------------------------------------
+# Sending api request.
+
+# Response stats:
+# Tokens (prompt completion) = 658 615
+# Generation time = 129.992 sec
+# Tokens per second = 9.79
+
+# The table in question is a tabular representation of data obtained from Differential Scanning Calorimetry (DSC) traces for different polymer electrolytes. It contains information on glass transition temperature (Tg), melting temperature (Tm), percentage of crystalline phase (XC %), activation energy (Ea), and reference temperature (T0).
+
+# The Tg value can be inferred to have been measured using differential scanning calorimetry (DSC), which is a common technique used to study thermal properties of materials. This inference is based on the fact that the table includes DSC traces for the different polymer electrolytes.
+
+# Here's the extracted JSONL data:
+
+# ```json
+# [
+#   { "PolymerName": "PEO-LiClO4", "PropertyName": "Tg", "PropertyValue": "244.79", "PropertyUnit": "K", "MeasurementMethod": "DSC", "MeasurementComposition": "(0.02)" },
+#   { "PolymerName": "PEO-LiClO4-10 wt. % PC", "PropertyName": "Tg", "PropertyValue": "243.96", "PropertyUnit": "K", "MeasurementMethod": "DSC", "MeasurementComposition": "(0.02)" },
+#   { "PolymerName": "PEO-LiClO4-20 wt. % PC", "PropertyName": "Tg", "PropertyValue": "242.73", "PropertyUnit": "K", "MeasurementMethod": "DSC", "MeasurementComposition": "(0.02)" },
+#   { "PolymerName": "PEO-LiClO4-30 wt. % PC", "PropertyName": "Tg", "PropertyValue": "242.21", "PropertyUnit": "K", "MeasurementMethod": "DSC", "MeasurementComposition": "(0.02)" },
+#   { "PolymerName": "PEO-LiClO4-40 wt. % PC", "PropertyName": "Tg", "PropertyValue": "233.81", "PropertyUnit": "K", "MeasurementMethod": "DSC", "MeasurementComposition": "(0.02)" },
+#   { "PolymerName": "PEO-LiClO4-50 wt. % PC", "PropertyName": "Tg", "PropertyValue": "245.84", "PropertyUnit": "K", "MeasurementMethod": "DSC", "MeasurementComposition": "(0.02)" }
+# ]
+# ```
