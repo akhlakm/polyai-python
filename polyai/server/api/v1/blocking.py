@@ -21,7 +21,7 @@ POLYAI_BOT_FMT = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 # Handle all the urls that starts with /api
 bp = Blueprint("apiv1", __name__)
 
-log = pylogg.New("endpoint")
+log = pylogg.New("api/v1")
 
 
 @bp.route('/', methods=["GET"])
@@ -29,7 +29,7 @@ def index():
     """ Handle the get requests with a simple page. """
     message  = f"Welcome to PolyAI API v{__version__}.\n"
     message += "Please send a post request to talk to the LLM.\n"
-    message += 'Shell example :\n\n\tcurl http://localhost:8080/api/chat/completions -d "hello"\n'
+    message += 'Shell example :\n\n\tcurl http://localhost:8080/api/v1/chat/completions -d "hello"\n'
 
     return message
 
