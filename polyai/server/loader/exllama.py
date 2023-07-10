@@ -113,13 +113,17 @@ class ExllamaModel:
         prompt_tok = prompt_tokens.shape[-1]
         compl_toks = [0] # list needed to pass by ref.
 
+        print("\n", "-"*80)
+        print(prompt)
+
+        output = ""
         for out in _stream_helper(generator, stops, max_tokens, compl_toks):
             output += out
             print(out, end="", flush=True)
 
         state.LLM._is_ready = True
 
-        print("\n", "-"*80)
+        print("\n", "-"*80, "\n")
         t1.done("Response: {}", output)
 
         return (
@@ -162,6 +166,7 @@ class ExllamaModel:
 
 
 def _prepare_generation(param):
+    param = state.LLM.parameters(param)
     generator = ExLlamaGenerator(state.LLM._model,
                                     state.LLM._tokenizer, state.LLM._cache)
     generator.settings = ExLlamaGenerator.Settings()
@@ -169,7 +174,6 @@ def _prepare_generation(param):
     generator.settings.top_k = param['top_k']
     generator.settings.top_p = param['top_p']
     generator.settings.min_p = param['min_p']
-    generator.settings.token_repetition_penalty_max = param['repetition_penalty']
     generator.settings.beams = param['num_beams']
     generator.settings.token_repetition_penalty_max = param['repetition_penalty']
 
@@ -301,9 +305,10 @@ def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
     return res_line
 
 
-def init_exllama_model(args):
+def init_exllama(args):
     if args.vram:
         assert "," in args.vram, "--vram must be a comma separated string"
         assert " " not in args.vram, "--vram must be without any space"
 
     state.LLM._loader = ExllamaModel(args.vram)
+    return state.LLM._loader

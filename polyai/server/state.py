@@ -80,41 +80,63 @@ class LLM:
         return cls._tokenizer.decode(string)[0]
 
     @classmethod
-    def parameters(body : dict, chat=False):
+    def get(cls, name, ptype, default, d : dict):
+        """ Update a dictionary item by typecasting. """
+        value = d.get(name, None)
+        if value is not None:
+            try:
+                value = ptype(value)
+            except:
+                raise TypeError("invalid type for {name}")
+        else:
+            value = default
+        return value
+
+    @classmethod
+    def parameters(cls, body : dict, chat=False):
+        # Aliases
         if 'max_tokens' in body:
-            body['max_new_tokens'] = body['max_tokens']
+            body['max_new_tokens'] = cls.get('max_tokens', int, None, body)
+        elif 'max_length' in body:
+            body['max_new_tokens'] = cls.get('max_length', int, None, body)
+        if 'typical' in body:
+            body['typical_p'] = cls.get('typical', float, None, body)
+        if 'rep_pen' in body:
+            body['repetition_penalty'] = cls.get('rep_pen', float, None, body)
+        if 'max_context_length' in body:
+            body['truncation_length'] = cls.get('max_context_length', int, None, body)
 
         generate_params = {
-            'max_new_tokens': int(body.get('max_new_tokens', body.get('max_length', 200))),
-            'do_sample': bool(body.get('do_sample', True)),
-            'temperature': float(body.get('temperature', 0.5)),
-            'top_p': float(body.get('top_p', 1)),
-            'min_p': float(body.get('min_p', 0.0)),
-            'typical_p': float(body.get('typical_p', body.get('typical', 1))),
-            'epsilon_cutoff': float(body.get('epsilon_cutoff', 0)),
-            'eta_cutoff': float(body.get('eta_cutoff', 0)),
-            'tfs': float(body.get('tfs', 1)),
-            'top_a': float(body.get('top_a', 0)),
-            'repetition_penalty': float(body.get('repetition_penalty', body.get('rep_pen', 1.1))),
-            'repetition_penalty_range': int(body.get('repetition_penalty_range', 0)),
-            'encoder_repetition_penalty': float(body.get('encoder_repetition_penalty', 1.0)),
-            'top_k': int(body.get('top_k', 0)),
-            'min_length': int(body.get('min_length', 0)),
-            'no_repeat_ngram_size': int(body.get('no_repeat_ngram_size', 0)),
-            'num_beams': int(body.get('num_beams', 1)),
-            'penalty_alpha': float(body.get('penalty_alpha', 0)),
-            'length_penalty': float(body.get('length_penalty', 1)),
-            'early_stopping': bool(body.get('early_stopping', False)),
-            'mirostat_mode': int(body.get('mirostat_mode', 0)),
-            'mirostat_tau': float(body.get('mirostat_tau', 5)),
-            'mirostat_eta': float(body.get('mirostat_eta', 0.1)),
-            'seed': int(body.get('seed', -1)),
-            'add_bos_token': bool(body.get('add_bos_token', True)),
-            'truncation_length': int(body.get('truncation_length', body.get('max_context_length', 2048))),
-            'ban_eos_token': bool(body.get('ban_eos_token', False)),
-            'skip_special_tokens': bool(body.get('skip_special_tokens', True)),
+            'max_new_tokens':               cls.get('max_new_tokens', int, 512, body),
+            'do_sample':                    cls.get('do_sample', bool, True, body),
+            'temperature':                  cls.get('temperature', float, 0.5, body),
+            'top_p':                        cls.get('top_p', float, 0.95, body),
+            'min_p':                        cls.get('min_p', float, 0.00, body),
+            'typical_p':                    cls.get('typical_p', float, 1, body),
+            'epsilon_cutoff':               cls.get('epsilon_cutoff', float, 0, body),
+            'eta_cutoff':                   cls.get('eta_cutoff', float, 0, body),
+            'tfs':                          cls.get('tfs', float, 1, body),
+            'top_a':                        cls.get('top_a', float, 0, body),
+            'repetition_penalty':           cls.get('repetition_penalty', float, 1.1, body),
+            'repetition_penalty_range':     cls.get('repetition_penalty_range', int, 0, body),
+            'encoder_repetition_penalty':   cls.get('encoder_repetition_penalty', float, 1.0, body),
+            'top_k':                        cls.get('top_k', int, 0, body),
+            'min_length':                   cls.get('min_length', int, 0, body),
+            'no_repeat_ngram_size':         cls.get('no_repeat_ngram_size', int, 0, body),
+            'num_beams':                    cls.get('num_beams', int, 1, body),
+            'penalty_alpha':                cls.get('penalty_alpha', float, 0, body),
+            'length_penalty':               cls.get('length_penalty', float, 1, body),
+            'early_stopping':               cls.get('early_stopping', bool, False, body),
+            'mirostat_mode':                cls.get('mirostat_mode', int, 0, body),
+            'mirostat_tau':                 cls.get('mirostat_tau', float, 5, body),
+            'mirostat_eta':                 cls.get('mirostat_eta', float, 0.1, body),
+            'seed':                         cls.get('seed', int, -1, body),
+            'add_bos_token':                cls.get('add_bos_token', bool, True, body),
+            'truncation_length':            cls.get('truncation_length', int, 2048, body),
+            'ban_eos_token':                cls.get('ban_eos_token', bool, False, body),
+            'skip_special_tokens':          cls.get('skip_special_tokens', bool, True, body),
             'custom_stopping_strings': '',  # leave this blank
-            'stopping_strings': body.get('stopping_strings', []),
+            'stopping_strings':             cls.get('stopping_strings', list, [], body),
         }
 
         preset_name = body.get('preset', 'None')

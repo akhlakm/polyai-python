@@ -73,7 +73,10 @@ def main():
 
         # Load the models into memory
         if args.model is not None:
-            loader.init_exllama_model(args)
+            exllama = loader.init_exllama(args)
+            exllama.load_model(args.model)
+            if args.lora:
+                exllama.add_lora(args.lora)
         else:
             log.error("No valid modelpath specified. Models can specified using the --model argument.")
             log.error("Alternatively, set the POLYAI_MODEL_PATH relative to ./models/ directory.")
