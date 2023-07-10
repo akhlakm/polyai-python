@@ -51,21 +51,3 @@ def create_idStr(prefix):
     idStr = str(round(time.time() * 1000))
     return prefix + "-" + idStr
 
-
-def vram_usage():
-    """ Return the current vram usage.
-    Returns:
-        current usage, total vram, free vram in GBytes.
-    """
-    free = 0
-    total = 0
-    devices = torch.cuda.device_count()
-    for i in range(devices):
-        mem = torch.cuda.mem_get_info(i)
-        free += mem[0]/1024/1024/1024
-        total += mem[1]/1024/1024/1024
-    
-    # print("VRAM usage, %d GPUs: %0.4f GB / %0.4f GB (%0.4f GB free)" %(devices, total-free, total, free))
-
-    # used, total, free
-    return total - free, total, free
