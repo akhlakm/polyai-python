@@ -5,7 +5,7 @@ import argparse
 import pylogg as log
 
 from polyai import __version__
-from polyai.server import models
+from polyai.server import loader
 from polyai.server.api import api_v1
 
 
@@ -73,13 +73,13 @@ def main():
 
         # Load the models into memory
         if args.model is not None:
-            models.init_exllama_model(args)
+            loader.init_exllama_model(args)
         else:
             log.error("No valid modelpath specified. Models can specified using the --model argument.")
             log.error("Alternatively, set the POLYAI_MODEL_PATH relative to ./models/ directory.")
 
         if args.bert is not None:
-            models.init_hf_bert(args.bert)
+            loader.init_hf_bert(args.bert)
         else:
             log.warning("No valid BERT directory specified. BERT can specified using the --bert argument.")
             log.warning("Alternatively, set the POLYAI_BERT_DIR relative to ./models/ directory.")

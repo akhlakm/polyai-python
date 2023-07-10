@@ -5,7 +5,7 @@ from flask import (
 )
 
 import pylogg
-from polyai.server import models
+import polyai.server.state as state
 from polyai.server import serverutils
 from polyai.server.api.api_v1 import utils
 
@@ -50,7 +50,7 @@ def bert_ner():
         if not text:
             abort(400, "no input received")
 
-    mname, ner, dt = models.get_bert_ner(text)
+    mname, ner, dt = loader.get_bert_ner(text)
     p_tok = 0
     c_tok = 0
 
@@ -188,10 +188,8 @@ def response_for_json(js : dict):
         # add the final string for assistant
         message = f"{instruction}{message}{POLYAI_BOT_FMT}"
 
-    js['prompt'] = message
-
     try:
-        response = models.get_exllama_response(stream=False, **js)
+        response = state.LLM.generate(message, js)
     except ConnectionError:
         abort(409, "Model not ready.")
     return response
@@ -222,7 +220,7 @@ def response_for_text(text : str):
     log.trace("Text request: {}", text)
     message = f"{POLYAI_USER_FMT} {text} {POLYAI_BOT_FMT}"
     try:
-        response = models.get_exllama_response(message, stream=False)
+        response = state.LLM.generate(message)
     except ConnectionError:
         abort(409, "Model not ready.")
     return response
