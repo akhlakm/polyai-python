@@ -1,9 +1,6 @@
 import time
 import json
-import torch
-
 from threading import Thread
-
 from polyai.server import database
 from polyai.server import orm
 
