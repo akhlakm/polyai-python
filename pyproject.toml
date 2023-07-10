@@ -42,7 +42,7 @@ server = [
     "safetensors",
     "datasets",
     "sentencepiece",
-    "transformers @ git+https://github.com/huggingface/transformers",
+    "transformers @ https://github.com/huggingface/transformers/archive/refs/heads/main.zip",
     "accelerate",
     "triton",
     "texttable",
@@ -52,6 +52,7 @@ server = [
     "gunicorn",
     "spacy",
     "ninja >= 1.11.1",
+    "websockets >= 11.0.2",
 ]
 
 [build-system]
