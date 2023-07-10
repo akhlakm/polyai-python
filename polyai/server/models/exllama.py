@@ -5,11 +5,11 @@ import torch
 import pylogg
 log = pylogg.New("llm")
 
-from polyai.exllama import model_init
-from polyai.exllama.model import ExLlama, ExLlamaCache
-from polyai.exllama.lora import ExLlamaLora
-from polyai.exllama.tokenizer import ExLlamaTokenizer
-from polyai.exllama.generator import ExLlamaGenerator
+from polyai.server.exllama import model_init
+from polyai.server.exllama.model import ExLlama, ExLlamaCache
+from polyai.server.exllama.lora import ExLlamaLora
+from polyai.server.exllama.tokenizer import ExLlamaTokenizer
+from polyai.server.exllama.generator import ExLlamaGenerator
 
 from polyai.server.models import utils
 
