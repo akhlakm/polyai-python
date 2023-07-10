@@ -43,5 +43,6 @@ See the [tests directory](/tests) for more example scripts.
 
 ## Todos
 - [ ] Implement Langchain with polyai.
-- [ ] Move arguments parsing to the `__main__.py` file.
+- [X] Move arguments parsing to the `__main__.py` file.
 - [ ] Add QLora training module.
+- [ ] Add textgen ui api endpoint as v2.
