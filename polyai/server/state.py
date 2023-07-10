@@ -147,3 +147,30 @@ class LLM:
             raise NotImplementedError("chat not implemented in polyai")
 
         return generate_params
+
+
+class BERT:
+    _loader = None
+    _model_name : str = None
+    _pipeline = None
+    _is_ready : bool = False
+    _stop_generation : bool = False
+
+    @classmethod
+    def stop_generation(cls):
+        cls._stop_generation = True
+
+    @classmethod
+    def model_name(cls):
+        return cls._model_name
+
+    @classmethod
+    def ner_tags(cls, text):
+        """
+        Perform NER using the loaded BERT model on the given text.
+        Returns:
+            Model name,
+            List of generated NER tags as a dict format,
+            Total time elapsed in miliseconds.
+        """
+        return cls._loader.ner_tags(text)

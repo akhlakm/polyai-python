@@ -50,7 +50,7 @@ def bert_ner():
         if not text:
             abort(400, "no input received")
 
-    mname, ner, dt = loader.get_bert_ner(text)
+    mname, ner, dt = state.BERT.ner_tags(text)
     p_tok = 0
     c_tok = 0
 

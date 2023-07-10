@@ -82,7 +82,8 @@ def main():
             log.error("Alternatively, set the POLYAI_MODEL_PATH relative to ./models/ directory.")
 
         if args.bert is not None:
-            loader.init_hf_bert(args.bert)
+            bert = loader.init_bert(args)
+            bert.load_model(args.bert)
         else:
             log.warning("No valid BERT directory specified. BERT can specified using the --bert argument.")
             log.warning("Alternatively, set the POLYAI_BERT_DIR relative to ./models/ directory.")

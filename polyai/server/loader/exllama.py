@@ -3,18 +3,15 @@ import argparse
 import torch
 
 import pylogg
-log = pylogg.New("llm")
-
+import polyai.server.state as state
 from polyai.server.exllama import model_init
 from polyai.server.exllama.model import ExLlama, ExLlamaCache
 from polyai.server.exllama.lora import ExLlamaLora
 from polyai.server.exllama.tokenizer import ExLlamaTokenizer
 from polyai.server.exllama.generator import ExLlamaGenerator
 
-import polyai.server.state as state
-from polyai.server.loader import utils
-
 EPS = 1e-10
+log = pylogg.New("llm")
 
 class ExllamaModel:
     def __init__(self, vram_spec = None) -> None:
