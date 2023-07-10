@@ -6,7 +6,7 @@ import pylogg as log
 
 from polyai import __version__
 from polyai.server import models
-from polyai.server import app
+from polyai.server.api import api_v1
 
 
 def parse_arguments():
@@ -87,7 +87,7 @@ def main():
 
         # Start the API servers.
         log.info("Running server on {}:{}", args.host, args.port)
-        app.run(args.host, args.port, debug=False)
+        api_v1.run(args.host, args.port, debug=False)
 
 
     log.close()
