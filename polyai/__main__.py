@@ -4,6 +4,11 @@ import dotenv
 import argparse
 import pylogg as log
 
+# This must come before loading other modules for proper initialization
+# of the global variables.
+if not dotenv.load_dotenv():
+    raise RuntimeError("Dot ENV not loaded, .env file must exist in the CWD.")
+
 from polyai import __version__
 from polyai.server import loader
 from polyai.server.api import api_v1
@@ -56,9 +61,6 @@ def main():
         log.setMaxLength(1000)
         log.setFile(open("polyai.log", "a+"))
         log.setConsoleTimes(show=True)
-
-    if not dotenv.load_dotenv():
-        raise RuntimeError("ENV not loaded")
 
     if args.cmd == "server":
         if args.model is None:
