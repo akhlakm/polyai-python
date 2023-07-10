@@ -28,7 +28,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/akhlakm/polyai-python/issues"
 
 [project.scripts]
-polyai = "polyai.server:main"
+polyai = "polyai.__main__:main"
 
 [project.optional-dependencies]
 # Install using `pip install .[server]`

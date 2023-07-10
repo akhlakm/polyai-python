@@ -1,6 +1,5 @@
 import os
 from collections import namedtuple
-import spacy
 import pylogg
 import polyai.server.state as state
 
@@ -9,6 +8,7 @@ log = pylogg.New("bert")
 
 class BERTModel:
     def __init__(self, device = None) -> None:
+        import spacy
         self.device = device if device else 'cuda:0'
         self.nlp = spacy.load("en_core_web_sm")
 

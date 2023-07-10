@@ -1,5 +1,4 @@
 """ Global server states. """
-
 import torch
 
 class Server:
