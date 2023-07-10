@@ -1,6 +1,4 @@
 import os
-from threading import Thread
-
 from flask import (
     Blueprint, jsonify, make_response, request,
     abort, session, redirect,
@@ -8,7 +6,8 @@ from flask import (
 
 import pylogg
 from polyai.server import models
-from polyai.server import utils
+from polyai.server import serverutils
+from polyai.server.api.api_v1 import utils
 
 # API version
 __version__ = "1.0"
@@ -18,9 +17,10 @@ POLYAI_INSTRUCTION_FMT = os.getenv("POLYAI_INSTRUCTION_FMT", "")
 POLYAI_USER_FMT = os.getenv("POLYAI_USER_FMT", "USER:")
 POLYAI_BOT_FMT = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 
-# Handle all the urls that starts with /api
+# Handle all the urls that starts with /api/v1
 bp = Blueprint("apiv1", __name__)
 
+# Set log prefix
 log = pylogg.New("api/v1")
 
 
@@ -55,7 +55,7 @@ def bert_ner():
     c_tok = 0
 
     # id of the chat request
-    idStr = utils.create_idStr("ner")
+    idStr = serverutils.create_idStr("ner")
 
     # convert to openai like json format
     payload = utils.make_response_dict(idStr, 'bert.ner', mname, dt,
@@ -65,13 +65,11 @@ def bert_ner():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    Thread(target=utils.store, args=(text, payload, resp.headers,
-                               apiKey, request.url, request.method,
-                               request.headers)).start()
-    
+    serverutils.store(text, payload, resp.headers, apiKey, request.url,
+                      request.method, request.headers)
+
     # Respond
     return resp
-
 
 
 @bp.route('/chat/completions', methods = ['POST'])
@@ -103,7 +101,7 @@ def chat_completions():
     assert type(texts) == list, "model response must be a list of str"
 
     # id of the chat request
-    idStr = utils.create_idStr("chcmpl")
+    idStr = serverutils.create_idStr("chcmpl")
 
     # convert to openai like json format
     ch = [utils.make_choice_dict(r, 'stop') for r in texts]
@@ -114,10 +112,9 @@ def chat_completions():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    Thread(target=utils.store, args=(inputs, payload, resp.headers,
-                               apiKey, request.url, request.method,
-                               request.headers)).start()
-    
+    serverutils.store(inputs, payload, resp.headers, apiKey,
+                      request.url, request.method, request.headers)
+
     # Respond
     return resp
 
