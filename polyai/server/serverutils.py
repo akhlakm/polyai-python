@@ -19,8 +19,11 @@ def store(message, respObj, respheads, apiKey, url, method, reqheads):
 
         output = " || ".join([ch['message']['content']
                                 for ch in respObj['choices']])
+
         if type(message) == dict:
-            message = json.dumps(message)
+            reqtext = json.dumps(message)
+        else:
+            reqtext = message
 
         apiReq = orm.APIRequest(
             idStr = respObj['id'],
@@ -28,7 +31,7 @@ def store(message, respObj, respheads, apiKey, url, method, reqheads):
             requrl = url,
             reqmethod = method,
             model = respObj['model'],
-            request = message,
+            request = reqtext,
             output = output,
             response = respObj,
             reqheaders = dict(reqheads),
