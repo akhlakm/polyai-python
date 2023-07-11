@@ -33,6 +33,7 @@ ssl_keys() {
     echo "Creating CA request files ..."
     openssl req -new -key keys/ssl.key -out keys/ssl.csr  # CA request file
 
+    # DNS cannot be ip address.
     cat > keys/ssl.ext << EOF
 authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
@@ -40,8 +41,7 @@ keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
 subjectAltName = @alt_names
 [alt_names]
 DNS.1 = localhost
-DNS.2 = 127.0.0.1
-DNS.3 = polyai
+DNS.2 = polyai
 EOF
 
     echo "Creating certificate ..."
@@ -51,6 +51,10 @@ EOF
 
     echo "Done! Use the crt and key files for SSL server on ssl."
     echo "Note! The CA certificate (~/.certs/my_ssl_CA.crt) must be installed on the client devices."
+}
+
+view_cert() {
+    openssl x509 -text < $1
 }
 
 "$@"
