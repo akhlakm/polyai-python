@@ -58,8 +58,6 @@ def main():
     if args.debug:
         log.setLevel(log.DEBUG)
         log.setMaxLength(2000)
-        log.setFile(open("polyai.log", "a+"))
-        log.setFileTimes(show=False)
     else:
         log.setLevel(log.INFO)
         log.setMaxLength(1000)
