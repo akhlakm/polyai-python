@@ -132,14 +132,22 @@ async def _handle_connection(websocket, path):
         return
 
 
-async def _run(host: str, port: int):
-    async with serve(_handle_connection, host, port, ping_interval=None):
+async def _run(host: str, port: int, secure : bool = True):
+    protocol = 'wss' if secure else 'ws'
+    log.info(f'Running streaming server at {protocol}://{host}:{port}{PATH}')
+    if secure:
+        import ssl
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_context.load_cert_chain(certfile="keys/ssl.crt", keyfile="keys/ssl.key")
+    else:
+        ssl_context = None
+
+    async with serve(_handle_connection, host, port, ping_interval=None, ssl = ssl_context):
         await asyncio.Future()  # run forever
 
 
 def _run_server(port: int, listen: bool = False):
     address = '0.0.0.0' if listen else '127.0.0.1'
-    log.info(f'Running streaming server at ws://{address}:{port}{PATH}')
     asyncio.run(_run(host=address, port=port))
 
 
