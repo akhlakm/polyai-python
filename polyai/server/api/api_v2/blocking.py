@@ -22,6 +22,7 @@ def get_model_info():
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        log.trace("Get request: {}", self.path)
         # Send currently loaded model name
         if self.path == PATH+'/model':
             self.send_response(200)
@@ -34,6 +35,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404)
 
     def do_POST(self):
+        log.trace("Post request: {}", self.path)
         content_length = int(self.headers['Content-Length'])
         body = json.loads(self.rfile.read(content_length).decode('utf-8'))
 
@@ -43,11 +45,12 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
 
             prompt = body['prompt']
-            answer = state.LLM.generate(prompt, body)
+            output = state.LLM.generate(prompt, body)
+            model, reply_list, ptok, ctok, dt = output
 
             response = json.dumps({
                 'results': [{
-                    'text': answer
+                    'text': "\n".join(reply_list)
                 }]
             })
 
@@ -69,10 +72,12 @@ class Handler(BaseHTTPRequestHandler):
             # answer = generate_params['history']
             log.warn("Chat generation requested. Not fully supported.")
 
-            answer = state.LLM.generate(user_input, body)
+            output = state.LLM.generate(prompt, body)
+            model, reply_list, ptok, ctok, dt = output
+
             response = json.dumps({
                 'results': [{
-                    'history': answer
+                    'history': "\n".join(reply_list)
                 }]
             })
 

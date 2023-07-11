@@ -60,12 +60,26 @@ class LLM:
 
     @classmethod
     def generate(cls, prompt, params = {}):
+        """
+        Given a prompt message and generation params, generate response.
+        
+        Returns:
+            Name of the model,
+            List of generated responses,
+            Total input tokens,
+            Total completion tokens,
+            Total time elapsed in miliseconds.
+        """
         if not cls._is_ready:
             raise ConnectionError
         return cls._loader.generate(prompt, params)
 
     @classmethod
     def stream(cls, prompt, params = {}):
+        """
+        Given a prompt message and generation params, stream model response.
+
+        """
         if not cls._is_ready:
             raise ConnectionError
         yield from cls._loader.stream(prompt, params)

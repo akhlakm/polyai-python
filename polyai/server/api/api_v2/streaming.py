@@ -118,6 +118,7 @@ async def _handle_chat_stream_message(websocket, message):
 
 
 async def _handle_connection(websocket, path):
+    log.trace("Stream request: {}", path)
     if path == PATH:
         async for message in websocket:
             await _handle_stream_message(websocket, message)
