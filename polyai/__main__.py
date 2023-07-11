@@ -20,7 +20,7 @@ def parse_arguments():
 
     parser.add_argument("cmd", help="server")
 
-    parser.add_argument("--host", default="0.0.0.0", help="server host IP address")
+    parser.add_argument("--host", default="127.0.0.1", help="server host IP address")
     parser.add_argument("--port", default=8080, type=int, help="server port")
     parser.add_argument("--model", default=None, help="LLM model safetensors or pt to load")
     parser.add_argument("--lora", default=None, help="Path to LoRA directory to load")
