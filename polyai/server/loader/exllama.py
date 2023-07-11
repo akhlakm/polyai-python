@@ -204,7 +204,8 @@ def _prepare_generation(param):
             stop_conditions.append((sc, "\n " + part))
         # Other stopping strings requested
         for pattern in param['stopping_strings']:
-            sc = state.LLM.encode(pattern)
+            sc = state.LLM.encode(pattern.strip())
+            sc = torch.cat((newline_token, sc), dim=1)
             stop_conditions.append((sc, pattern))
 
     return generator, stop_conditions, max_tokens
