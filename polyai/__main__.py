@@ -25,6 +25,7 @@ def parse_arguments():
     parser.add_argument("--lora", default=None, help="Path to LoRA directory to load")
     parser.add_argument("--bert", default=None, help="Path to BERT model directory")
     parser.add_argument("--vram", default=None, help="Comma seperated max VRAM usage for the GPUs")
+    parser.add_argument("--bert-device", default="cuda", help="Device for loading the BERT model")
 
     parser.add_argument("--listen", default=False, action="store_true",
                         help="Listen to 0.0.0.0")
