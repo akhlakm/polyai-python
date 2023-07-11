@@ -4,7 +4,8 @@
 # 1. Generate a local certificate authority.
 # 2. Install the CA .crt file in your client devices/docker containers/browsers.
 # 3. Generate SSL key pairs using the CA.
-# 4. Use the SSL file on the server.
+# 4. Use the SSL files on the server.
+# 5. For deployment, you need to upload the signed SSL files (e.g. use rsync)
 
 local_ca() {
     # Create a local certificate authority.
