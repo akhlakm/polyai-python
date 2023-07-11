@@ -1,11 +1,10 @@
 #!/bin/sh
 
-# Steps for local development
+# Steps for SSH connection. Repeat when expired.
 # 1. Generate a local certificate authority.
 # 2. Install the CA .crt file in your client devices/docker containers/browsers.
 # 3. Generate SSL key pairs using the CA.
-# 4. Use the SSL files on the server.
-# 5. For deployment, you need to upload the signed SSL files (e.g. use rsync)
+# 4. Upload the signed SSL files (e.g. use rsync) to the server.
 
 local_ca() {
     # Create a local certificate authority.
