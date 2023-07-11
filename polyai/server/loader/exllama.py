@@ -156,7 +156,6 @@ class ExllamaModel:
 
 
 def _prepare_generation(param):
-    print(param)
     param = state.LLM.parameters(param)
     generator = ExLlamaGenerator(state.LLM._model,
                                     state.LLM._tokenizer, state.LLM._cache)
