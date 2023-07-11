@@ -1,3 +1,4 @@
+import ssl
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
@@ -165,10 +166,20 @@ class Handler(BaseHTTPRequestHandler):
         super().end_headers()
 
 
-def _run_server(port: int, listen : bool = False):
+def _run_server(port: int, listen : bool = False, secure : bool = True):
     address = '0.0.0.0' if listen else '127.0.0.1'
+    protocol = 'https' if secure else 'http'
+
     server = ThreadingHTTPServer((address, port), Handler)
-    log.info(f'Running blocking server at http://{address}:{port}{PATH}')
+
+    if secure:
+        server.socket = ssl.wrap_socket(server.socket,
+                                        server_side=True,
+                                        certfile="keys/ssl.crt",
+                                        keyfile="keys/ssl.key",
+                                        ssl_version=ssl.PROTOCOL_TLS)
+
+    log.info(f'Running blocking server at {protocol}://{address}:{port}{PATH}')
     server.serve_forever()
 
 

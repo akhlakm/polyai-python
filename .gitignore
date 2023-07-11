@@ -1,5 +1,9 @@
 *.pyc
 *.log
+*.key
+*.crt
+*.csr
+*.ext
 
 *.egg-info/
 venv/
