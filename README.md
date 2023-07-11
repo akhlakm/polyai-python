@@ -42,7 +42,7 @@ print(resp['choices'][0]['message']['content']) # response text
 See the [tests directory](/tests) for more example scripts.
 
 ## Todos
-- [ ] Implement Langchain with polyai.
 - [X] Move arguments parsing to the `__main__.py` file.
+- [X] Add textgen ui api endpoint as v2.
+- [ ] Implement Langchain with polyai.
 - [ ] Add QLora training module.
-- [ ] Add textgen ui api endpoint as v2.
