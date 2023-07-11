@@ -90,7 +90,7 @@ class LLM:
 
     @classmethod
     def decode(cls, string, **kwargs):
-        return cls._tokenizer.decode(string)[0]
+        return cls._tokenizer.decode(string)
 
     @classmethod
     def get(cls, name, ptype, default, d : dict):

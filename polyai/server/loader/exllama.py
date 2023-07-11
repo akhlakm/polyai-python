@@ -99,13 +99,13 @@ class ExllamaModel:
             Total completion tokens,
             Total time elapsed in miliseconds.
         """
-        t1 = log.trace("Getting LLM response for: {}", prompt)
+        t1 = log.trace("Getting LLM response.")
         generator, stops, max_tokens = _prepare_generation(params)
         prompt = prompt.strip()
         state.LLM._is_ready = False
 
         # Set the context/user input
-        prompt_tokens = self.encode(prompt)
+        prompt_tokens = state.LLM.encode(prompt)
         generator.gen_begin_reuse(prompt_tokens)
         prompt_tok = prompt_tokens.shape[-1]
         compl_toks = [0] # list needed to pass by ref.
@@ -121,7 +121,7 @@ class ExllamaModel:
         state.LLM._is_ready = True
 
         print("\n", "-"*80, "\n")
-        t1.done("Generation done")
+        t1.done("Generation done.")
         log.trace("Response message: {}", output)
 
         return (
@@ -138,13 +138,13 @@ class ExllamaModel:
         Given a prompt message, stream model response.
 
         """
-        t1 = log.trace("Streaming LLM response for: {}", prompt)
+        t1 = log.trace("Streaming LLM response.")
         generator, stops, max_tokens = _prepare_generation(params)
         prompt = prompt.strip()
         state.LLM._is_ready = False
 
         # Set the context/user input
-        prompt_tokens = self.encode(prompt)
+        prompt_tokens = state.LLM.encode(prompt)
         generator.gen_begin_reuse(prompt_tokens)
         prompt_tok = prompt_tokens.shape[-1]
         compl_toks = [0] # list needed to pass by ref.
@@ -155,15 +155,8 @@ class ExllamaModel:
         t1.done("Stream complete.")
 
 
-    def encode(self, string, **kwargs):
-        return state.LLM._tokenizer.encode(string)
-
-
-    def decode(self, string, **kwargs):
-        return state.LLM._tokenizer.decode(string)[0]
-
-
 def _prepare_generation(param):
+    print(param)
     param = state.LLM.parameters(param)
     generator = ExLlamaGenerator(state.LLM._model,
                                     state.LLM._tokenizer, state.LLM._cache)
@@ -206,13 +199,13 @@ def _prepare_generation(param):
     else:
         # Stop generation if a newline followed by a participant is generated.
         for part in participants:
-            sc = state.LLM._tokenizer.encode(part)
+            sc = state.LLM.encode(part)
             sc = torch.cat((newline_token, sc), dim=1)
             stop_conditions.append((sc, "\n" + part))
             stop_conditions.append((sc, "\n " + part))
         # Other stopping strings requested
         for pattern in param['stopping_strings']:
-            sc = state.LLM._tokenizer.encode(pattern)
+            sc = state.LLM.encode(pattern)
             stop_conditions.append((sc, pattern))
 
     return generator, stop_conditions, max_tokens
@@ -252,7 +245,7 @@ def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
         # due to how SentencePiece works)
         prev_res_line = res_line
         num_res_tokens += 1
-        res_line = state.LLM._tokenizer.decode(generator.sequence_actual[0, -num_res_tokens:])
+        res_line = state.LLM.decode(generator.sequence_actual[0, -num_res_tokens:])
         new_text = res_line[len(prev_res_line):]
 
         # Since SentencePiece is slightly ambiguous,
@@ -260,7 +253,7 @@ def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
         # same that is reproduced when we encode the text later,
         # even though it encodes the same string
         if num_res_tokens == 1 and len(new_text) > 0:
-            replace = state.LLM._tokenizer.encode(new_text)[0]
+            replace = state.LLM.encode(new_text)[0]
             if replace.shape[-1] == 1:
                 generator.replace_last_token(replace)
 
@@ -281,7 +274,7 @@ def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
         # Check the stop conditions
         if gen_token.item() == state.LLM._tokenizer.eos_token_id:
             if len(held_text) > 0:  # Not sure if this could actually happen
-                plen = state.LLM._tokenizer.encode(held_text).shape[-1]
+                plen = state.LLM.encode(held_text).shape[-1]
                 res_line = res_line[:-len(held_text)]
                 generator.gen_rewind(plen)
             stop_condition = True
