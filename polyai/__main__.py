@@ -12,6 +12,7 @@ if not dotenv.load_dotenv():
 from polyai import __version__
 from polyai.server import loader
 from polyai.server.api import api_v1
+from polyai.server.api import api_v2
 
 
 def parse_arguments():
@@ -94,6 +95,7 @@ def main():
         # Start the API servers.
         log.info("Running server on {}:{}", args.host, args.port)
         api_v1.run(args.host, args.port, debug=False)
+        api_v2.run(blocking_port=5000, streaming_port=5005)
 
 
     log.close()

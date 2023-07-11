@@ -2,41 +2,33 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 
+import pylogg
 import polyai.server.state as state
-from polyai.server.loader import exllama
 
-from polyai.server.api.api_v2.utils import build_parameters, try_start_cloudflared
-from modules import shared
-from modules.chat import generate_chat_reply
-from modules.LoRA import add_lora_to_model
-from modules.models import load_model, unload_model
-from modules.models_settings import (get_model_settings_from_yamls,
-                                     update_model_parameters)
-from modules.text_generation import (encode, generate_reply,
-                                     stop_everything_event)
-from modules.utils import get_available_models
+# Set log prefix
+log = pylogg.New("api/v2")
 
+PATH = "/api/v1"
 
 def get_model_info():
     return {
-        'model_name': shared.model_name,
-        'lora_names': shared.lora_names,
+        'model_name': state.LLM.model_name(),
+        'lora_names': [state.LLM._lora_name],
         # dump
-        'shared.settings': shared.settings,
-        'shared.args': vars(shared.args),
+        'shared.settings': {},
+        'shared.args': [],
     }
 
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # Current model name
-        if self.path == '/api/v1/model':
+        # Send currently loaded model name
+        if self.path == PATH+'/model':
             self.send_response(200)
             self.end_headers()
             response = json.dumps({
                 'result': state.LLM.model_name()
             })
-
             self.wfile.write(response.encode('utf-8'))
         else:
             self.send_error(404)
@@ -45,22 +37,13 @@ class Handler(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         body = json.loads(self.rfile.read(content_length).decode('utf-8'))
 
-        if self.path == '/api/v1/generate':
+        if self.path == PATH+'/generate':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
 
             prompt = body['prompt']
-            generate_params = build_parameters(body)
-            stopping_strings = generate_params.pop('stopping_strings')
-            generate_params['stream'] = False
-
-            generator = generate_reply(
-                prompt, generate_params, stopping_strings=stopping_strings, is_chat=False)
-
-            answer = ''
-            for a in generator:
-                answer = a
+            answer = state.LLM.generate(prompt, body)
 
             response = json.dumps({
                 'results': [{
@@ -70,25 +53,23 @@ class Handler(BaseHTTPRequestHandler):
 
             self.wfile.write(response.encode('utf-8'))
 
-        elif self.path == '/api/v1/chat':
+        elif self.path == PATH+'/chat':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
 
             user_input = body['user_input']
-            regenerate = body.get('regenerate', False)
-            _continue = body.get('_continue', False)
+            body['stream'] = False
 
-            generate_params = build_parameters(body, chat=True)
-            generate_params['stream'] = False
+            # Chat reply
+            # regenerate = body.get('regenerate', False)
+            # _continue = body.get('_continue', False)
+            # generator = generate_chat_reply(
+            #     user_input, generate_params, regenerate=regenerate, _continue=_continue, loading_message=False)
+            # answer = generate_params['history']
+            log.warn("Chat generation requested. Not fully supported.")
 
-            generator = generate_chat_reply(
-                user_input, generate_params, regenerate=regenerate, _continue=_continue, loading_message=False)
-
-            answer = generate_params['history']
-            for a in generator:
-                answer = a
-
+            answer = state.LLM.generate(user_input, body)
             response = json.dumps({
                 'results': [{
                     'history': answer
@@ -97,11 +78,12 @@ class Handler(BaseHTTPRequestHandler):
 
             self.wfile.write(response.encode('utf-8'))
 
-        elif self.path == '/api/v1/stop-stream':
+        elif self.path == PATH+'/stop-stream':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
 
+            log.trace("Stop generation requested.")
             state.LLM.stop_generation()
 
             response = json.dumps({
@@ -110,7 +92,7 @@ class Handler(BaseHTTPRequestHandler):
 
             self.wfile.write(response.encode('utf-8'))
 
-        elif self.path == '/api/v1/model':
+        elif self.path == PATH+'/model':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
@@ -125,44 +107,22 @@ class Handler(BaseHTTPRequestHandler):
                 model_name = body['model_name']
                 args = body.get('args', {})
                 print('args', args)
-                for k in args:
-                    setattr(shared.args, k, args[k])
 
-                shared.model_name = model_name
-                unload_model()
-
-                model_settings = get_model_settings_from_yamls(shared.model_name)
-                shared.settings.update(model_settings)
-                update_model_parameters(model_settings, initial=True)
-
-                if shared.settings['mode'] != 'instruct':
-                    shared.settings['instruction_template'] = None
-
-                try:
-                    shared.model, shared.tokenizer = load_model(shared.model_name)
-                    if shared.args.lora:
-                        add_lora_to_model(shared.args.lora)  # list
-
-                except Exception as e:
-                    response = json.dumps({'error': {'message': repr(e)}})
-
-                    self.wfile.write(response.encode('utf-8'))
-                    raise e
-
-                shared.args.model = shared.model_name
-
-                result = get_model_info()
+                response = json.dumps({'error': {'message': 'not allowed'}})
+                self.wfile.write(response.encode('utf-8'))
+                raise NotImplementedError("Model load request")
 
             elif action == 'unload':
-                unload_model()
-                shared.model_name = None
-                shared.args.model = None
-                result = get_model_info()
+                response = json.dumps({'error': {'message': 'not allowed'}})
+                self.wfile.write(response.encode('utf-8'))
+                raise NotImplementedError("Model unload request")
 
             elif action == 'list':
-                result = get_available_models()
+                log.trace("Model list requested.")
+                result = [state.LLM.model_name()]
 
             elif action == 'info':
+                log.trace("Model info requested.")
                 result = get_model_info()
 
             response = json.dumps({
@@ -171,12 +131,13 @@ class Handler(BaseHTTPRequestHandler):
 
             self.wfile.write(response.encode('utf-8'))
 
-        elif self.path == '/api/v1/token-count':
+        elif self.path == PATH+'/token-count':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
 
-            tokens = encode(body['prompt'])[0]
+            log.trace("Token count requested: {}", body['prompt'])
+            tokens = state.LLM.encode(body['prompt'])[0]
             response = json.dumps({
                 'results': [{
                     'tokens': len(tokens)
@@ -199,12 +160,12 @@ class Handler(BaseHTTPRequestHandler):
         super().end_headers()
 
 
-def _run_server(port: int, listen : bool):
+def _run_server(port: int, listen : bool = False):
     address = '0.0.0.0' if listen else '127.0.0.1'
     server = ThreadingHTTPServer((address, port), Handler)
-    print(f'Starting API at http://{address}:{port}/api')
+    log.info(f'Starting server at http://{address}:{port}{PATH}')
     server.serve_forever()
 
 
-def start_server(port: int, listen: bool = True):
-    Thread(target=_run_server, args=[port, listen], daemon=True).start()
+def start_server(port: int, listen: bool = False):
+    Thread(target=_run_server, args=[port, listen], daemon=False).start()
