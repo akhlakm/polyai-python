@@ -121,7 +121,8 @@ class ExllamaModel:
         state.LLM._is_ready = True
 
         print("\n", "-"*80, "\n")
-        t1.done("Response: {}", output)
+        t1.done("Generation done")
+        log.trace("Response message: {}", output)
 
         return (
             state.LLM.model_name(),
