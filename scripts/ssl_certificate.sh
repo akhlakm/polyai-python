@@ -42,6 +42,7 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = localhost
 DNS.2 = polyai
+DNS.3 = tunnel
 EOF
 
     echo "Creating certificate ..."
