@@ -6,7 +6,7 @@ from flask import (
 
 import pylogg
 import polyai.server.state as state
-from polyai.server import serverutils
+from polyai.server import tools
 from polyai.server.api.api_v1 import utils
 
 # API version
@@ -55,7 +55,7 @@ def bert_ner():
     c_tok = 0
 
     # id of the chat request
-    idStr = serverutils.create_idStr("ner")
+    idStr = tools.create_idStr("ner")
 
     # convert to openai like json format
     payload = utils.make_response_dict(idStr, 'bert.ner', mname, dt,
@@ -65,7 +65,7 @@ def bert_ner():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    serverutils.store(text, payload, resp.headers, apiKey, request.url,
+    tools.store(text, payload, resp.headers, apiKey, request.url,
                       request.method, request.headers)
 
     # Respond
@@ -101,7 +101,7 @@ def chat_completions():
     assert type(texts) == list, "model response must be a list of str"
 
     # id of the chat request
-    idStr = serverutils.create_idStr("chcmpl")
+    idStr = tools.create_idStr("chcmpl")
 
     # convert to openai like json format
     ch = [utils.make_choice_dict(r, 'stop') for r in texts]
@@ -112,7 +112,7 @@ def chat_completions():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    serverutils.store(inputs, payload, resp.headers, apiKey,
+    tools.store(inputs, payload, resp.headers, apiKey,
                       request.url, request.method, request.headers)
 
     # Respond
