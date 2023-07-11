@@ -138,7 +138,7 @@ async def _run(host: str, port: int):
 
 def _run_server(port: int, listen: bool = False):
     address = '0.0.0.0' if listen else '127.0.0.1'
-    log.info(f'Starting streaming server at ws://{address}:{port}{PATH}')
+    log.info(f'Running streaming server at ws://{address}:{port}{PATH}')
     asyncio.run(_run(host=address, port=port))
 
 

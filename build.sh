@@ -56,7 +56,7 @@ docker-server-entry() {
 
     export POLYAI_REQUEST_LENGTH=4096
 
-    python -m polyai server
+    python -m polyai server --listen
     # /bin/bash --init-file <(echo ". .bashrc; . .docker_env/bin/activate")
 }
 
@@ -76,6 +76,8 @@ docker-server() {
         -v "./.env:/home/user/.env" \
         -v "./pyproject.toml:/home/user/pyproject.toml" \
         -p $POLYAI_SERV_PORT:8080 \
+        -p 5000:5000 \
+        -p 5005:5005 \
         --name polyai polyai \
         docker-server-entry
 }

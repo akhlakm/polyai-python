@@ -163,7 +163,7 @@ class Handler(BaseHTTPRequestHandler):
 def _run_server(port: int, listen : bool = False):
     address = '0.0.0.0' if listen else '127.0.0.1'
     server = ThreadingHTTPServer((address, port), Handler)
-    log.info(f'Starting server at http://{address}:{port}{PATH}')
+    log.info(f'Running blocking server at http://{address}:{port}{PATH}')
     server.serve_forever()
 
 

@@ -20,15 +20,17 @@ def parse_arguments():
 
     parser.add_argument("cmd", help="server")
 
-    parser.add_argument("--host", default="127.0.0.1", help="server host IP address")
-    parser.add_argument("--port", default=8080, type=int, help="server port")
+    parser.add_argument("--port", default=8080, type=int, help="Server api port")
     parser.add_argument("--model", default=None, help="LLM model safetensors or pt to load")
     parser.add_argument("--lora", default=None, help="Path to LoRA directory to load")
     parser.add_argument("--bert", default=None, help="Path to BERT model directory")
     parser.add_argument("--vram", default=None, help="Comma seperated max VRAM usage for the GPUs")
 
+    parser.add_argument("--listen", default=False, action="store_true",
+                        help="Listen to 0.0.0.0")
+
     parser.add_argument("--debug", default=True, action='store_true',
-                        help="enable debugging")
+                        help="Enable debugging")
 
     args = parser.parse_args()
 
@@ -92,10 +94,9 @@ def main():
             log.warning("Alternatively, set the POLYAI_BERT_DIR relative to ./models/ directory.")
 
 
-        # Start the API servers.
-        log.info("Running server on {}:{}", args.host, args.port)
-        api_v1.run(args.host, args.port, debug=False)
-        api_v2.run(blocking_port=5000, streaming_port=5005)
+        # Start the API servers, v1 is blocking, so run it last.
+        api_v2.run(blocking_port=5000, streaming_port=5005, listen=args.listen)
+        api_v1.run(port=args.port, listen=args.listen)
 
 
     log.close()
