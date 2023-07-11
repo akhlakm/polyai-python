@@ -1,12 +1,10 @@
 *.pyc
 *.log
-*.key
 *.crt
-*.csr
-*.ext
 
 *.egg-info/
 venv/
+keys/
 .DS_Store
 .env
 .docker_env

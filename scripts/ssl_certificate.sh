@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Steps for SSH connection. Repeat when expired.
+# Steps for SSL connection. Repeat when expired.
 # 1. Generate a local certificate authority.
 # 2. Install the CA .crt file in your client devices/docker containers/browsers.
 # 3. Generate SSL key pairs using the CA.
