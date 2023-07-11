@@ -30,7 +30,7 @@ def parse_arguments():
     parser.add_argument("--listen", default=False, action="store_true",
                         help="Listen to 0.0.0.0")
 
-    parser.add_argument("--debug", default=True, action='store_true',
+    parser.add_argument("--debug", default=False, action='store_true',
                         help="Enable debugging")
 
     args = parser.parse_args()
