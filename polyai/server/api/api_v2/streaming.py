@@ -66,6 +66,14 @@ async def _handle_stream_message(websocket, message):
     skip_index = 0
     message_num = 0
 
+    if not state.LLM._is_ready:
+        await websocket.send(json.dumps({
+            'event': 'stream_end',
+            'message_num': message_num,
+            'text': 'Error!! Model not ready.'
+        }))
+
+
     for a in state.LLM.stream(prompt, body):
         to_send = a[skip_index:]
         if to_send is None or chr(0xfffd) in to_send:  # partial unicode character, don't send it yet.
@@ -148,8 +156,12 @@ async def _run(host: str, port: int, secure : bool = True):
 
 def _run_server(port: int, listen: bool = False):
     address = '0.0.0.0' if listen else '127.0.0.1'
-    asyncio.run(_run(host=address, port=port))
+    try:
+        asyncio.run(_run(host=address, port=port))
+    except Exception as err:
+        print("Failed to start streaming server.")
+        print(err)
 
 
 def start_server(port: int, listen: bool = False):
-    Thread(target=_run_server, args=[port, listen], daemon=False).start()
+    Thread(target=_run_server, args=[port, listen], daemon=True).start()

@@ -11,8 +11,7 @@ if not dotenv.load_dotenv():
 
 from polyai import __version__
 from polyai.server import loader
-from polyai.server.api import api_v1
-from polyai.server.api import api_v2
+from polyai.server import api
 
 
 def parse_arguments():
@@ -20,7 +19,8 @@ def parse_arguments():
 
     parser.add_argument("cmd", help="server")
 
-    parser.add_argument("--port", default=8080, type=int, help="Server api port")
+    parser.add_argument("--htport", default=8001, type=int, help="Server api port")
+    parser.add_argument("--wsport", default=8002, type=int, help="Server api port")
     parser.add_argument("--model", default=None, help="LLM model safetensors or pt to load")
     parser.add_argument("--lora", default=None, help="Path to LoRA directory to load")
     parser.add_argument("--bert", default=None, help="Path to BERT model directory")
@@ -94,8 +94,8 @@ def main():
 
 
         # Start the API servers, v1 is blocking, so run it last.
-        api_v2.run(blocking_port=8001, streaming_port=8002, listen=args.listen)
-        api_v1.run(port=args.port, listen=args.listen)
+        api.run(polyai_port=args.htport, streaming_port=args.wsport,
+                listen=args.listen, debug=args.debug)
 
 
     log.close()

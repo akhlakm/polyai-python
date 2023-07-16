@@ -18,7 +18,7 @@ POLYAI_USER_FMT = os.getenv("POLYAI_USER_FMT", "USER:")
 POLYAI_BOT_FMT = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 
 # Handle all the urls that starts with /api/v1
-bp = Blueprint("apiv1", __name__)
+bp = Blueprint("polyai", __name__)
 
 # Set log prefix
 log = pylogg.New("api/v1")
