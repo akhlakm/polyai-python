@@ -94,7 +94,7 @@ def main():
 
 
         # Start the API servers, v1 is blocking, so run it last.
-        api_v2.run(blocking_port=5000, streaming_port=5005, listen=args.listen)
+        api_v2.run(blocking_port=8001, streaming_port=8002, listen=args.listen)
         api_v1.run(port=args.port, listen=args.listen)
 
 
