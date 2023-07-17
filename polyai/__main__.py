@@ -20,8 +20,9 @@ def parse_arguments():
     parser.add_argument("cmd", help="server")
 
     parser.add_argument("--htport", default=8001, type=int, help="Server api port")
-    parser.add_argument("--wsport", default=8002, type=int, help="Server api port")
+    parser.add_argument("--wsport", default=8002, type=int, help="Server api streaming port")
     parser.add_argument("--model", default=None, help="LLM model safetensors or pt to load")
+    parser.add_argument("--ctx", default=2048, help="Model context length (default 2048)")
     parser.add_argument("--lora", default=None, help="Path to LoRA directory to load")
     parser.add_argument("--bert", default=None, help="Path to BERT model directory")
     parser.add_argument("--vram", default=None, help="Comma seperated max VRAM usage for the GPUs")

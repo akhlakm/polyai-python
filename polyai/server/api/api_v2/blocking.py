@@ -56,8 +56,8 @@ def generate():
     try:
         output = state.LLM.generate(prompt, body)
         model, reply_list, ptok, ctok, dt = output
-    except ConnectionError:
-        reply_list = ["Error!! Model not ready."]
+    except Exception as err:
+        reply_list = [str(err)]
     return respond({
         'results': [{
             'text': "\n".join(reply_list)

@@ -71,8 +71,13 @@ class LLM:
             Total time elapsed in miliseconds.
         """
         if not cls._is_ready:
-            raise ConnectionError
-        return cls._loader.generate(prompt, params)
+            raise ConnectionError("<model not ready>")
+        try:
+            return cls._loader.generate(prompt, params)
+        except:
+            raise
+        finally:
+            cls._is_ready = True
 
     @classmethod
     def stream(cls, prompt, params = {}):

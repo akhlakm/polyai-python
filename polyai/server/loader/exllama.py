@@ -14,8 +14,9 @@ EPS = 1e-10
 log = pylogg.New("llm")
 
 class ExllamaModel:
-    def __init__(self, vram_spec = None) -> None:
+    def __init__(self, vram_spec = None, ctx_len = 2048) -> None:
         self.vram_spec = vram_spec
+        self.ctx_len = ctx_len
 
         state.LLM._user_name = os.getenv("POLYAI_USER_FMT", "USER:")
         state.LLM._bot_name = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
@@ -48,6 +49,7 @@ class ExllamaModel:
 
         # Overrides/settings
         exargs.directory = os.path.dirname(model_file)
+        exargs.length = self.ctx_len
         if self.vram_spec is not None:
             log.info("Using GPU map: {} GB", self.vram_spec)
             exargs.gpu_split = self.vram_spec
@@ -305,5 +307,5 @@ def init_exllama(args):
         assert "," in args.vram, "--vram must be a comma separated string"
         assert " " not in args.vram, "--vram must be without any space"
 
-    state.LLM._loader = ExllamaModel(args.vram)
+    state.LLM._loader = ExllamaModel(args.vram, args.ctx)
     return state.LLM._loader
