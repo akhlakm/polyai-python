@@ -25,6 +25,8 @@ def parse_arguments():
     parser.add_argument("--ctx", default=2048, type=int, help="Model context length (default 2048)")
     parser.add_argument("--lora", default=None, help="Path to LoRA directory to load")
     parser.add_argument("--bert", default=None, help="Path to BERT model directory")
+    parser.add_argument("--ssl", default=False, action="store_true",
+                        help="Use https for requests")
     parser.add_argument("--vram", default=None, help="Comma seperated max VRAM usage for the GPUs")
     parser.add_argument("--bert-device", default="cuda", help="Device for loading the BERT model")
 
@@ -96,7 +98,7 @@ def main():
 
         # Start the API servers, v1 is blocking, so run it last.
         api.run(polyai_port=args.htport, streaming_port=args.wsport,
-                listen=args.listen, debug=args.debug)
+                listen=args.listen, ssl=args.ssl, debug=args.debug)
 
 
     log.close()
