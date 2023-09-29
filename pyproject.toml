@@ -21,6 +21,7 @@ dependencies = [
   "requests",
   "flask",
   "sshtunnel",
+  "pyyaml",
 ]
 
 [project.urls]
