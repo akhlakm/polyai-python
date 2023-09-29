@@ -1,6 +1,6 @@
 from flask import Flask
-from polyai.server.api import api_v1
-from polyai.server.api import api_v2
+from polyai.server.endpoints import api_v1
+from polyai.server.endpoints import api_v2
 
 def run(polyai_port, streaming_port, listen=False, ssl=False, debug=False):
     host = '0.0.0.0' if listen else '127.0.0.1'

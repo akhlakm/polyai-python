@@ -11,7 +11,7 @@ if not dotenv.load_dotenv():
 
 from polyai import __version__
 from polyai.server import loader
-from polyai.server import api
+from polyai.server import endpoints
 
 
 def parse_arguments():
@@ -97,7 +97,7 @@ def main():
 
 
         # Start the API servers, v1 is blocking, so run it last.
-        api.run(polyai_port=args.htport, streaming_port=args.wsport,
+        endpoints.run(polyai_port=args.htport, streaming_port=args.wsport,
                 listen=args.listen, ssl=args.ssl, debug=args.debug)
 
 

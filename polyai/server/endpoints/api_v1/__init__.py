@@ -1,5 +1,5 @@
 from flask import Flask
-from polyai.server.api.api_v1 import blocking
+from polyai.server.endpoints.api_v1 import blocking
 
 def run(port, listen=False, debug=False):
     """ Run api/v1 server (openai like). """
