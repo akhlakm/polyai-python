@@ -1,5 +1,5 @@
-import polyai.server.api.api_v2.blocking as blocking_api
-import polyai.server.api.api_v2.streaming as streaming_api
+import polyai.server.endpoints.api_v2.blocking as blocking_api
+import polyai.server.endpoints.api_v2.streaming as streaming_api
 
 # API version
 __version__ = "2.0"
