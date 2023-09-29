@@ -2,7 +2,7 @@ from .model import ExLlama, ExLlamaCache, ExLlamaConfig
 from .tokenizer import ExLlamaTokenizer
 import argparse, sys, os, glob
 from torch import version as torch_version
-from globals import set_affinity_str
+from .globals import set_affinity_str
 
 def add_args(parser):
 
