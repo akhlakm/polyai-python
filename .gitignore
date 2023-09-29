@@ -1,8 +1,11 @@
 *.pyc
 *.log
+*.crt
 
 *.egg-info/
 venv/
+keys/
+build/
 .DS_Store
 .env
 .docker_env

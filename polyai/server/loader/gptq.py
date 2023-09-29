@@ -3,7 +3,7 @@ import os, sys
 
 import pylogg
 import polyai.server
-from polyai.server.models import utils
+from polyai.server.loader import utils
 
 log = pylogg.New("llm")
 

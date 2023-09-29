@@ -1,6 +1,6 @@
 [project]
 name = "polyai-python"
-version = "0.0.05"
+version = "0.0.9"
 authors = [
     { name="Akhlak Mahmood", email="akhlakm@gatech.edu" },
 ]
@@ -28,7 +28,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/akhlakm/polyai-python/issues"
 
 [project.scripts]
-polyai = "polyai.server:main"
+polyai = "polyai.__main__:main"
 
 [project.optional-dependencies]
 # Install using `pip install .[server]`
@@ -42,16 +42,18 @@ server = [
     "safetensors",
     "datasets",
     "sentencepiece",
-    "transformers @ git+https://github.com/huggingface/transformers",
+    "transformers @ https://github.com/huggingface/transformers/archive/refs/heads/main.zip",
     "accelerate",
     "triton",
     "texttable",
     "toml",
+    "tqdm",
     "numpy",
     "protobuf",
     "gunicorn",
     "spacy",
     "ninja >= 1.11.1",
+    "websockets >= 11.0.2",
 ]
 
 [build-system]

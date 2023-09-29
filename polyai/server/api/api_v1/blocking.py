@@ -1,14 +1,13 @@
 import os
-from threading import Thread
-
 from flask import (
     Blueprint, jsonify, make_response, request,
     abort, session, redirect,
 )
 
 import pylogg
-from polyai.server import models
-from polyai.server import utils
+import polyai.server.state as state
+from polyai.server import tools
+from polyai.server.api.api_v1 import utils
 
 # API version
 __version__ = "1.0"
@@ -18,10 +17,11 @@ POLYAI_INSTRUCTION_FMT = os.getenv("POLYAI_INSTRUCTION_FMT", "")
 POLYAI_USER_FMT = os.getenv("POLYAI_USER_FMT", "USER:")
 POLYAI_BOT_FMT = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 
-# Handle all the urls that starts with /api
-bp = Blueprint("apiv1", __name__)
+# Handle all the urls that starts with /api/v1
+bp = Blueprint("polyai", __name__)
 
-log = pylogg.New("endpoint")
+# Set log prefix
+log = pylogg.New("api/v1")
 
 
 @bp.route('/', methods=["GET"])
@@ -29,7 +29,7 @@ def index():
     """ Handle the get requests with a simple page. """
     message  = f"Welcome to PolyAI API v{__version__}.\n"
     message += "Please send a post request to talk to the LLM.\n"
-    message += 'Shell example :\n\n\tcurl http://localhost:8080/api/chat/completions -d "hello"\n'
+    message += 'Shell example :\n\n\tcurl http://localhost:8080/api/v1/chat/completions -d "hello"\n'
 
     return message
 
@@ -50,12 +50,12 @@ def bert_ner():
         if not text:
             abort(400, "no input received")
 
-    mname, ner, dt = models.get_bert_ner(text)
+    mname, ner, dt = state.BERT.ner_tags(text)
     p_tok = 0
     c_tok = 0
 
     # id of the chat request
-    idStr = utils.create_idStr("ner")
+    idStr = tools.create_idStr("ner")
 
     # convert to openai like json format
     payload = utils.make_response_dict(idStr, 'bert.ner', mname, dt,
@@ -65,13 +65,11 @@ def bert_ner():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    Thread(target=utils.store, args=(text, payload, resp.headers,
-                               apiKey, request.url, request.method,
-                               request.headers)).start()
-    
+    tools.store(text, payload, resp.headers, apiKey, request.url,
+                      request.method, request.headers)
+
     # Respond
     return resp
-
 
 
 @bp.route('/chat/completions', methods = ['POST'])
@@ -103,7 +101,7 @@ def chat_completions():
     assert type(texts) == list, "model response must be a list of str"
 
     # id of the chat request
-    idStr = utils.create_idStr("chcmpl")
+    idStr = tools.create_idStr("chcmpl")
 
     # convert to openai like json format
     ch = [utils.make_choice_dict(r, 'stop') for r in texts]
@@ -114,10 +112,9 @@ def chat_completions():
     resp = make_response(jsonify(payload))
 
     # Add the request info to database in the background
-    Thread(target=utils.store, args=(inputs, payload, resp.headers,
-                               apiKey, request.url, request.method,
-                               request.headers)).start()
-    
+    tools.store(inputs, payload, resp.headers, apiKey,
+                      request.url, request.method, request.headers)
+
     # Respond
     return resp
 
@@ -191,10 +188,8 @@ def response_for_json(js : dict):
         # add the final string for assistant
         message = f"{instruction}{message}{POLYAI_BOT_FMT}"
 
-    js['prompt'] = message
-
     try:
-        response = models.get_exllama_response(stream=False, **js)
+        response = state.LLM.generate(message, js)
     except ConnectionError:
         abort(409, "Model not ready.")
     return response
@@ -225,7 +220,7 @@ def response_for_text(text : str):
     log.trace("Text request: {}", text)
     message = f"{POLYAI_USER_FMT} {text} {POLYAI_BOT_FMT}"
     try:
-        response = models.get_exllama_response(message, stream=False)
+        response = state.LLM.generate(message)
     except ConnectionError:
         abort(409, "Model not ready.")
     return response

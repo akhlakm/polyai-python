@@ -63,6 +63,6 @@ def create_ssh_tunnel():
     )
 
     server.start()
-    polyai.api.api_base = f"http://{server.local_bind_host}:{server.local_bind_port}/api/"
+    polyai.api.api_base = f"http://{server.local_bind_host}:{server.local_bind_port}/api/v1/"
 
     return server

@@ -26,6 +26,7 @@ RUN apt-get install -y libcairo2-dev libjpeg-dev libgif-dev
 
 # Setup system
 RUN ln -s $(which python3) /bin/python
+RUN python -m pip install pip -U
 
 # Setup user
 RUN useradd -m -s /bin/bash -u 1000 user
@@ -33,12 +34,19 @@ ENV PATH="/home/user/.local/bin:${PATH}"
 ARG PATH="/home/user/.local/bin:${PATH}"
 SHELL [ "/bin/bash", "-c" ]
 
+# Install certificate authority (needed for clients)
+# RUN apt-get install -y ca-certificates
+# COPY ./my_ssl_CA.crt /usr/local/share/ca-certificates/my_ssl_CA.crt
+# ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/my_ssl_CA.crt
+# RUN update-ca-certificates
+
+# Copy the SSL certificate (for servers)
+COPY keys/ /home/user/keys/
+RUN chown -R user /home/user/keys/
+
 # Setup app
 USER user
 WORKDIR /home/user/
-
-# Setup runtime
-RUN python -m pip install pip -U
 
 
 # Setup entry
