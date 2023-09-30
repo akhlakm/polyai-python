@@ -11,8 +11,11 @@ def run(polyai_port, streaming_port, listen=False, ssl=False, debug=False):
 
     app.register_blueprint(openai.blocking.bp, url_prefix="/polyai/")
     app.register_blueprint(textgen.blocking.bp, url_prefix="/api/v1/")
+
+    # This runs in the bg, so start first.
     textgen.streaming.start_server(streaming_port, listen)
 
+    # Start the main blocking server.
     if ssl:
         app.run(host=host, port=polyai_port, debug=False,
             ssl_context=("keys/ssl.crt", "keys/ssl.key")
