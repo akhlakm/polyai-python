@@ -7,7 +7,7 @@ from flask import (
 import pylogg
 import polyai.server.state as state
 from polyai.server import tools
-from polyai.server.endpoints.api_v1 import utils
+from polyai.server.endpoints.openai import utils
 
 # API version
 __version__ = "1.0"
