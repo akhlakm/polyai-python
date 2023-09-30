@@ -1,6 +1,6 @@
 from flask import Flask
-from polyai.server.endpoints import api_v1
-from polyai.server.endpoints import api_v2
+from polyai.server.endpoints import openai
+from polyai.server.endpoints import textgen
 
 def run(polyai_port, streaming_port, listen=False, ssl=False, debug=False):
     host = '0.0.0.0' if listen else '127.0.0.1'
@@ -9,9 +9,9 @@ def run(polyai_port, streaming_port, listen=False, ssl=False, debug=False):
     print(f"Serving openai API at /polyai")
     print(f"Serving textgen API at /api")
 
-    app.register_blueprint(api_v1.blocking.bp, url_prefix="/polyai/")
-    app.register_blueprint(api_v2.blocking.bp, url_prefix="/api/v1/")
-    api_v2.streaming.start_server(streaming_port, listen)
+    app.register_blueprint(openai.blocking.bp, url_prefix="/polyai/")
+    app.register_blueprint(textgen.blocking.bp, url_prefix="/api/v1/")
+    textgen.streaming.start_server(streaming_port, listen)
 
     if ssl:
         app.run(host=host, port=polyai_port, debug=False,
