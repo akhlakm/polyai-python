@@ -1,6 +1,6 @@
 import os
-from collections import namedtuple
 import pylogg
+from collections import namedtuple
 import polyai.server.state as state
 
 log = pylogg.New("bert")
@@ -17,8 +17,9 @@ class BERTModel:
             "VRAM usage, %d GPUs: %0.4f GB / %0.4f GB (%0.4f GB free)"
             %state.Server.vram_usage())
 
-    def load_model(self, model_dir):
+    def load_model(self, model_file : str):
         # Notify user
+        model_dir = os.path.dirname(model_file)
         t1 = log.trace("Loading BERT model: {}", model_dir)
         self.print_vram_usage()
 
@@ -41,7 +42,7 @@ class BERTModel:
     def ner_tags(self, text):
         t1 = log.trace("Getting NER for: {}", text)
         ner_output = state.BERT._pipeline(text)
-        ner_tuples = _ner_feed(ner_output, text)
+        ner_tuples = self._ner_feed(ner_output, text)
         t1.done("NER processed: {}", ner_output)
 
         return (
@@ -99,9 +100,9 @@ class BERTModel:
         return token_labels 
 
 
-def init_bert(args):
-    if args.bert_device == 'cuda':
-        args.bert_device = 'cuda:0'
+def init_bert(device : str):
+    if device == 'cuda':
+        device = 'cuda:0'
 
-    state.BERT._loader = BERTModel(args.bert_device)
+    state.BERT._loader = BERTModel(device)
     return state.BERT._loader

@@ -1,7 +1,6 @@
-import os
 import polyai.api
-
 from urllib.parse import urlparse
+
 
 def default_api_key() -> str:
     if polyai.api.api_key_path:
@@ -18,7 +17,6 @@ def default_api_key() -> str:
         )
 
 
-
 def create_ssh_tunnel():
     """
     Update the API endpoint URL to connect via SSH tunnel.
@@ -29,40 +27,33 @@ def create_ssh_tunnel():
     Returns:
         SSHTunnelForwarder instance.
     """
-
+    import polyai.sett as sett
     from sshtunnel import SSHTunnelForwarder
 
-    host = os.environ.get("SSH_TUNNEL_HOST")
-    usernm = os.environ.get("SSH_USERNAME")
-    passwd = os.environ.get("SSH_PASSWORD")
+    host = sett.API.ssh_tunnel_host
+    port = sett.API.ssh_tunnel_port
+    usernm = sett.API.ssh_tunnel_user
+    passwd = sett.API.ssh_tunnel_pass
 
     if host is None or usernm is None:
         print("Not creating SSH tunnel.")
-        print("To use SSH tunnel, make sure SSH_TUNNEL_HOST, "
-              "SSH_USERNAME and SSH_PASSWORD environment "
-              "variables are correctly defined and loaded.")
         return None
 
     # API endpoint
-    llm_host = os.environ.get("LLM_HOST", None)
-    llm_port = os.environ.get("LLM_PORT", None)
-
-    if llm_host is None:
-        llm_host = urlparse(polyai.api.api_base).hostname
-    if llm_port is None:
-        llm_port = urlparse(polyai.api.api_base).port
+    endpoint_host = urlparse(sett.API.polyai_api_base).hostname
+    endpoint_port = urlparse(sett.API.polyai_api_base).port
+    endpoint_path = urlparse(sett.API.polyai_api_base).path
 
     server = SSHTunnelForwarder(
         (
-            host,
-            int(os.environ.get("SSH_TUNNEL_PORT") or 22)
+            host, int(port)
         ),
         ssh_username=usernm,
         ssh_password=passwd,
-        remote_bind_address=(llm_host, int(llm_port)),
+        remote_bind_address=(endpoint_host, int(endpoint_port)),
     )
 
     server.start()
-    polyai.api.api_base = f"http://{server.local_bind_host}:{server.local_bind_port}/api/v1/"
+    polyai.api.api_base = f"http://{server.local_bind_host}:{server.local_bind_port}{endpoint_path}"
 
     return server

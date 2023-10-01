@@ -1,7 +1,9 @@
 import os
+from . import error
 from .chat_completion import Completion
 from .chat_completion import ChatCompletion
 from .bert_ner import BERTNER
+from .embedding import TextEmbedding
 from .util import create_ssh_tunnel
 
 api_key = os.environ.get("POLYAI_API_KEY")

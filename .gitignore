@@ -1,6 +1,7 @@
 *.pyc
 *.log
 *.crt
+*.yaml
 
 *.egg-info/
 venv/

@@ -38,7 +38,7 @@ def _make_session() -> requests.Session:
     return s
 
 
-# Requestor class, taken from the openai python package.
+# Requestor class, adapted from the openai python package.
 class APIRequestor:
     def __init__(self, key=None, api_base=None, organization=None):
         self.api_key = key or util.default_api_key()

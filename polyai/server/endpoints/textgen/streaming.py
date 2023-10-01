@@ -1,5 +1,6 @@
-import asyncio
+import os
 import json
+import asyncio
 from threading import Thread
 from websockets.server import serve
 
@@ -7,7 +8,7 @@ import pylogg
 import polyai.server.state as state
 
 # Set log prefix
-log = pylogg.New("api/v2/ws")
+log = pylogg.New("stream")
 
 PATH = '/api/v1/stream'
 
@@ -140,28 +141,47 @@ async def _handle_connection(websocket, path):
         return
 
 
-async def _run(host: str, port: int, secure : bool = True):
+async def _run(host: str, port: int,
+               cert_file : str = None, key_file : str = None):
+
+    secure = cert_file and key_file
+
+    if secure and not os.path.isfile(cert_file):
+        log.error("Cerficate file does not exist: {}", cert_file)
+        secure = False
+
+    if secure and not os.path.isfile(cert_file):
+        log.error("Key file does not exist: {}", key_file)
+        secure = False
+
     protocol = 'wss' if secure else 'ws'
-    log.info(f'Running streaming server at {protocol}://{host}:{port}{PATH}')
+    log.info(f'Running TextGen streaming server at '
+             f'{protocol}://{host}:{port}{PATH}')
+
     if secure:
         import ssl
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ssl_context.load_cert_chain(certfile="keys/ssl.crt", keyfile="keys/ssl.key")
+        ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file)
     else:
         ssl_context = None
 
-    async with serve(_handle_connection, host, port, ping_interval=None, ssl = ssl_context):
+    async with serve(_handle_connection, host, port, ping_interval=None,
+                     ssl = ssl_context):
         await asyncio.Future()  # run forever
 
 
-def _run_server(port: int, listen: bool = False):
+def _run_server(port, listen, cert_file, key_file):
     address = '0.0.0.0' if listen else '127.0.0.1'
     try:
-        asyncio.run(_run(host=address, port=port))
+        asyncio.run(_run(host=address, port=port,
+                         cert_file=cert_file, key_file=key_file))
     except Exception as err:
         print("Failed to start streaming server.")
         print(err)
+        raise err
 
 
-def start_server(port: int, listen: bool = False):
-    Thread(target=_run_server, args=[port, listen], daemon=True).start()
+def start_server(port: int, listen: bool = False,
+                 cert_file : str = None, key_file : str = None):
+    Thread(target=_run_server, args=[port, listen, cert_file, key_file],
+           daemon=True).start()

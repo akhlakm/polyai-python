@@ -14,8 +14,6 @@ def instruct_prompt(model, instruction, prompt, shots = [], **kwargs):
         The request dict.
     """
 
-    polyai.api.api_key = os.getenv("POLYAI_API_KEY")
-    
     # Construct the instruct payload with optional shots
     # No of shots = len(payload) - 2
     payload = [ {"role": "system", "content": instruction} ]
@@ -42,6 +40,10 @@ def model_reply(respObj, i = 0):
 def model_ner(respObj):
     """ Extract the NER tag list from the response json. """
     return respObj['ner_tags']
+
+def embeddings(respObj):
+    """ Extract the NER tag list from the response json. """
+    return respObj['embeddings']
 
 def generation_time(repsObj):
     """ Return the generation time in miliseconds. """

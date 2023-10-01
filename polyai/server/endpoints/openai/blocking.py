@@ -1,38 +1,20 @@
-import os
 from flask import (
     Blueprint, jsonify, make_response, request,
     abort, session, redirect,
 )
 
 import pylogg
+import polyai.sett as sett
 import polyai.server.state as state
+
 from polyai.server import tools
-from polyai.server.api.api_v1 import utils
+from polyai.server.endpoints.openai import utils
 
-# API version
-__version__ = "1.0"
-
-POLYAI_REQUEST_LENGTH = int(os.getenv("POLYAI_REQUEST_LENGTH") or 2048)
-POLYAI_INSTRUCTION_FMT = os.getenv("POLYAI_INSTRUCTION_FMT", "")
-POLYAI_USER_FMT = os.getenv("POLYAI_USER_FMT", "USER:")
-POLYAI_BOT_FMT = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
-
-# Handle all the urls that starts with /api/v1
+# Handle all the urls that starts with /polyai
 bp = Blueprint("polyai", __name__)
 
 # Set log prefix
-log = pylogg.New("api/v1")
-
-
-@bp.route('/', methods=["GET"])
-def index():
-    """ Handle the get requests with a simple page. """
-    message  = f"Welcome to PolyAI API v{__version__}.\n"
-    message += "Please send a post request to talk to the LLM.\n"
-    message += 'Shell example :\n\n\tcurl http://localhost:8080/api/v1/chat/completions -d "hello"\n'
-
-    return message
-
+log = pylogg.New("end1")
 
 @bp.route('/bert/ner', methods = ['POST'])
 def bert_ner():
@@ -72,6 +54,52 @@ def bert_ner():
     return resp
 
 
+@bp.route('/text/embedding', methods = ['POST'])
+def text_embeddings():
+    """
+    Handle Embedding requests. Must be a post method.
+    
+    """
+    apiKey = request.headers.get("Api-Key", None)
+
+    if request.is_json:
+        js = request.get_json()
+        text = js.get("text")
+    else:
+        text = request.get_data(as_text=True)
+        if not text:
+            abort(400, "no input received")
+
+    t2 = log.trace("Calculating text embeddings.")
+
+    inputs = state.LLM.encode(text)
+    inputs = inputs[-1].tolist()
+
+    p_tok = len(inputs)
+    dt = t2.elapsed()
+
+    c_tok = 0
+    model = state.LLM.model_name()
+
+    # id of the chat request
+    idStr = tools.create_idStr("embedding")
+
+    # convert to openai like json format
+    payload = utils.make_response_dict(idStr, 'text.embedding', model, dt,
+                                       prompt_tok=p_tok, compl_tok=c_tok,
+                                       embeddings=inputs)
+
+    # http response
+    resp = make_response(jsonify(payload))
+
+    # Add the request info to database in the background
+    tools.store(text, payload, resp.headers, apiKey, request.url,
+                      request.method, request.headers)
+
+    # Respond
+    return resp
+
+
 @bp.route('/chat/completions', methods = ['POST'])
 def chat_completions():
     """
@@ -80,20 +108,14 @@ def chat_completions():
     """
     apiKey = request.headers.get("Api-Key", None)
     len = int(request.headers.get('Content-Length') or 0)
-    if len > int(POLYAI_REQUEST_LENGTH):
-        abort(400, "max request length exceeded")
+    if len > sett.Server.max_content_len:
+        abort(400, "max content length exceeded")
 
     if request.is_json:
         inputs = request.get_json()
         output = response_for_json(inputs)
     else:
-        # if not json formatted, create a simple prompt.
-        log.warning("Not a JSON request.")
-        inputs = request.get_data(as_text=True)
-        if not inputs:
-            abort(400, "no input received")
-        else:
-            output = response_for_text(inputs)
+        abort(400, "request must be valid JSON formatted")
 
     # model text generation stats
     model_name, texts, p_tok, c_tok, dt = output
@@ -113,7 +135,7 @@ def chat_completions():
 
     # Add the request info to database in the background
     tools.store(inputs, payload, resp.headers, apiKey,
-                      request.url, request.method, request.headers)
+                    request.url, request.method, request.headers)
 
     # Respond
     return resp
@@ -134,6 +156,7 @@ def response_for_json(js : dict):
     # Check types
     validate('temperature', float, js)
     validate('max_tokens', int, js)
+    validate('max_length', int, js)
     validate('min_tokens', int, js)
     validate('prompt', str, js)
     validate('top_p', float, js)
@@ -142,7 +165,11 @@ def response_for_json(js : dict):
     # Parse the json request
     messages = js.get("messages")
     prompt = js.get("prompt")
-    
+
+    max_tokens = js.get('max_length')
+    if max_tokens is None:
+        max_tokens = js.get('max_tokens') or sett.TextGen.context_length
+
     # If a prompt is given, ignore the messages
     if prompt:
         if 'assistant:' in prompt.lower():
@@ -150,7 +177,7 @@ def response_for_json(js : dict):
             message = prompt
         else:
             # format using env vars
-            message = f"{POLYAI_USER_FMT} {prompt} {POLYAI_BOT_FMT}"
+            message = f"{sett.TextGen.user_fmt} {prompt} {sett.TextGen.bot_fmt}"
 
     else:
         # parse the messages
@@ -178,15 +205,31 @@ def response_for_json(js : dict):
 
             if role == "system":
                 # A system role is the main instruction
-                instruction += f"{POLYAI_INSTRUCTION_FMT} {cont}\n".lstrip()
+                instr = sett.TextGen.instruction_fmt
+                if "{content}" in instr:
+                    instruction = instr.format(content=cont).lstrip()+"\n"
+                else:
+                    instruction += f"{instr} {cont}\n".lstrip()
             else:
                 # Few-shots
-                if role == "user": role = POLYAI_USER_FMT
-                elif role == "assistant": role = POLYAI_BOT_FMT
+                if role == "user": role = sett.TextGen.user_fmt
+                elif role == "assistant": role = sett.TextGen.bot_fmt
                 message += f"{role} {cont}\n".lstrip()
 
         # add the final string for assistant
-        message = f"{instruction}{message}{POLYAI_BOT_FMT}"
+        message = f"{instruction}{message}{sett.TextGen.bot_fmt}"
+
+    # Check if message is not too big.
+    inputs = state.LLM.encode(message)[-1]
+
+    if len(inputs) > sett.TextGen.context_length:
+        abort(400, "max request tokens length exceeded")
+
+    if len(inputs) + max_tokens >= sett.TextGen.context_length:
+        js['max_tokens'] = sett.TextGen.context_length - len(inputs) - 1
+        js['max_new_tokens'] = js['max_tokens']
+        log.warn("Set allowed max_tokens from {} to {}",
+                 max_tokens, js.get('max_tokens'))
 
     try:
         response = state.LLM.generate(message, js)
@@ -205,25 +248,6 @@ def validate(name : str, ptype : callable, d : dict):
             abort(400, f"invalid type for {name}")
     d[name] = value
     return d
-
-
-def response_for_text(text : str):
-    """
-    Construct a simple instruct prompt with the request text.
-
-    Returns:
-        A tuple with the model's generated text,
-        number of prompt tokens, and the number of completion tokens.
-        The generated text is stripped off the BOS, EOS tokens
-        and the request text.
-    """
-    log.trace("Text request: {}", text)
-    message = f"{POLYAI_USER_FMT} {text} {POLYAI_BOT_FMT}"
-    try:
-        response = state.LLM.generate(message)
-    except ConnectionError:
-        abort(409, "Model not ready.")
-    return response
 
 
 @bp.errorhandler(400)

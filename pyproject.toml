@@ -1,6 +1,6 @@
 [project]
 name = "polyai-python"
-version = "0.0.9"
+version = "0.0.10"
 authors = [
     { name="Akhlak Mahmood", email="akhlakm@gatech.edu" },
 ]
@@ -21,6 +21,7 @@ dependencies = [
   "requests",
   "flask",
   "sshtunnel",
+  "pyyaml",
 ]
 
 [project.urls]
@@ -37,8 +38,6 @@ server = [
     "pandas",
     "psycopg2-binary",
     "sshtunnel",
-    "python-dotenv",
-    "pyenv-encrypt",
     "safetensors",
     "datasets",
     "sentencepiece",
