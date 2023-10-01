@@ -6,29 +6,47 @@ from dataclasses import dataclass
 
 
 @dataclass
-class TextGenConfig:
+class text_generation:
     user_fmt : str = "### Human:"
     bot_fmt : str = "### Assistant:"
     instruction_fmt : str = ""
     context_length : int = 4096
 
-@dataclass
-class ModelConfig:
-    model_file_path : str = "models/<folder>/model.st"
-    lora_file_path : str = "loras/<folder>/lora.st"
+TextGen = text_generation()
 
 @dataclass
-class APIConfig:
+class models:
+    model_file_path : str = None
+    lora_file_path : str = None
+    bert_file_path : str = None
+    vram_config : str = "8,10,10,10"
+    bert_device : str = "cuda"
+
+Model = models()
+
+@dataclass
+class api_config:
     polyai_api_key : str = "pl-test"
     polyai_api_base : str = "http://localhost:8001/polyai/"
 
-@dataclass
-class ServerConfig:
-    api_endpoint_port : int = 8001
-    ssl_endpoint_port : int = 8002
+API = api_config()
 
 @dataclass
-class PostgresConfig:
+class server:
+    api_endpoint_port : int = 8001
+    stream_endpoint_port : int = 8002
+    use_ssl : bool = False
+    listen_all : bool = False       # listen to 0.0.0.0
+    log_level : int = 8
+    debug : bool = False
+    log_file_name : str = "polyai.log"
+    log_append : bool = False
+
+Server = server()
+
+
+@dataclass
+class postgres_db:
     # Postgres configurations to store api_keys and requests.
     db_user : str = ""
     db_pass : str = ""
@@ -36,27 +54,30 @@ class PostgresConfig:
     db_port : int = 5432
     db_name : str = "polyai"
 
+Postgres = postgres_db()
+
+
 @dataclass
-class DockerConfig:
+class docker_config:
     # Docker specific variables if server is run in a docker container.
     server_cache : str = "~/.cache"
     models_dir : str = "models/"
     docker_network : str = "polyai"
 
+Docker = docker_config()
 
 # List of sections in the YAML file.
 _sections : list = []
 
 def _api_settings():
-    _sections.append(APIConfig())
+    _sections.append(API)
 
 def _server_settings():
-    _sections.append(TextGenConfig())
-    _sections.append(ModelConfig())
-    _sections.append(APIConfig())
-    _sections.append(ServerConfig())
-    _sections.append(PostgresConfig())
-    _sections.append(DockerConfig())
+    _sections.append(TextGen)
+    _sections.append(Model)
+    _sections.append(Server)
+    _sections.append(Postgres)
+    _sections.append(Docker)
 
 
 def _load_settings(settings_yaml: str = 'settings.yaml') -> bool:
@@ -91,7 +112,7 @@ def load_api_settings(settings_yaml: str = 'settings.yaml') -> bool:
     _api_settings()
     return _load_settings(settings_yaml)
 
-def save_api_settings(settings_yaml: str = 'settings.yaml') -> bool:
+def save_api_settings(settings_yaml: str = 'settings.yaml'):
     _api_settings()
     return _save_settings(settings_yaml)
 
@@ -99,7 +120,7 @@ def load_server_settings(settings_yaml: str = 'settings.yaml') -> bool:
     _server_settings()
     return _load_settings(settings_yaml)
 
-def save_server_settings(settings_yaml: str = 'settings.yaml') -> bool:
+def save_server_settings(settings_yaml: str = 'settings.yaml'):
     _server_settings()
     return _save_settings(settings_yaml)
 
