@@ -64,6 +64,9 @@ class ExllamaModel:
         state.LLM._tokenizer = ExLlamaTokenizer(exargs.tokenizer)
 
         state.LLM._model_name = os.path.basename(model_file).split(".")[0]
+        if state.LLM._model_name == 'model':
+            state.LLM._model_name = os.path.dirname(model_file).split("/")[-1]
+
         state.LLM._is_ready = True
 
         model_init.print_stats(state.LLM._model)
