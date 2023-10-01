@@ -1,4 +1,4 @@
-import os, sys
+import os
 import argparse
 import torch
 
@@ -17,9 +17,6 @@ class ExllamaModel:
     def __init__(self, vram_spec = None, ctx_len = 2048) -> None:
         self.vram_spec = vram_spec
         self.ctx_len = ctx_len
-
-        state.LLM._user_name = os.getenv("POLYAI_USER_FMT", "USER:")
-        state.LLM._bot_name = os.getenv("POLYAI_BOT_FMT", "ASSISTANT:")
 
         # Not sure what this does exactly.
         torch.set_grad_enabled(False)
@@ -74,8 +71,9 @@ class ExllamaModel:
         self.print_vram_usage()
 
 
-    def add_lora(self, lora_dir):
+    def add_lora(self, lora_file : str):
         assert state.LLM._model is not None, "Model must be loaded first"
+        lora_dir = os.path.dirname(lora_file)
 
         t1 = log.info("Loading LoRA from: {}", lora_dir)
         lora_config = os.path.join(lora_dir, "adapter_config.json")
@@ -167,12 +165,14 @@ def _prepare_generation(param):
     generator.settings.top_p = param['top_p']
     generator.settings.min_p = param['min_p']
     generator.settings.beams = param['num_beams']
-    generator.settings.token_repetition_penalty_max = param['repetition_penalty']
+    generator.settings.token_repetition_penalty_max = \
+        param['repetition_penalty']
 
     if param['repetition_penalty_range'] <= 0:
         generator.settings.token_repetition_penalty_sustain = -1
     else:
-        generator.settings.token_repetition_penalty_sustain = param['repetition_penalty_range']
+        generator.settings.token_repetition_penalty_sustain = \
+            param['repetition_penalty_range']
 
     if param['ban_eos_token']:
         generator.disallow_tokens([state.LLM._tokenizer.eos_token_id])
@@ -192,7 +192,8 @@ def _prepare_generation(param):
 
     # Prepare stop conditions
     stop_conditions = []
-    newline_token = torch.Tensor([[state.LLM._tokenizer.newline_token_id]]).long()
+    newline_token = \
+        torch.Tensor([[state.LLM._tokenizer.newline_token_id]]).long()
 
     if state.LLM._break_on_newline:
         # Stop generation on newline character.
@@ -286,7 +287,8 @@ def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
             if res_line.lower().endswith(stop_string.lower()):
                 generator.gen_rewind(
                     stop_tokens.shape[-1] - (
-                        1 if stop_tokens[0, 0].item() == state.LLM._tokenizer.newline_token_id else 0
+                        1 if stop_tokens[0, 0].item() == \
+                            state.LLM._tokenizer.newline_token_id else 0
                     )
                 )
                 res_line = res_line[:-len(stop_string)]
@@ -302,10 +304,15 @@ def _stream_helper(generator, stop_conditions, max_tokens, total_tokens):
     return res_line
 
 
-def init_exllama(args):
-    if args.vram:
-        assert "," in args.vram, "--vram must be a comma separated string"
-        assert " " not in args.vram, "--vram must be without any space"
+def init_exllama(user : str, bot : str, instruct : str,
+                 vram : str = None, context_len : int = 4096):
+    if vram:
+        assert "," in vram, "--vram must be a comma separated string"
+        assert " " not in vram, "--vram must be without any space"
 
-    state.LLM._loader = ExllamaModel(args.vram, args.ctx)
+    state.LLM._user_name = user
+    state.LLM._bot_name = bot
+    state.LLM._system_name = instruct
+
+    state.LLM._loader = ExllamaModel(vram, context_len)
     return state.LLM._loader
