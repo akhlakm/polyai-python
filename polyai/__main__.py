@@ -18,19 +18,19 @@ def parse_arguments():
         help="Settings file to load/save (default settings.yaml).")
     parser.add_argument(
         "--model", default=None,
-        help="LLM model safetensors or pt to load")
+        help="LLM model .safetensors or .pt file to load.")
     parser.add_argument(
         "--ssl", default=None, action="store_true",
-        help="Use https for requests")
+        help="Use https for the server endpoints.")
     parser.add_argument(
         "--vram", default=None,
-        help="Comma seperated max VRAM usage for the GPUs")
+        help="Comma seperated max VRAM usage for the GPUs.")
     parser.add_argument(
         "--log", default=None, type=int,
         help="Log level. Higher is more verbose.")
     parser.add_argument(
         "--debug", default=None, action='store_true',
-        help="Enable debugging")
+        help="Enable debugging.")
 
     args = parser.parse_args()
     return args
