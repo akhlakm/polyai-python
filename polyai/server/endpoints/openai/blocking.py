@@ -89,14 +89,12 @@ def text_embeddings():
             abort(400, "no input received")
 
     t2 = log.trace("Calculating text embeddings.")
-    inputs = state.LLM.encode(text)
+    inputs = state.LLM.encode(text)[-1]
     p_tok = inputs.shape[-1]
     dt = t2.elapsed()
 
     c_tok = 0
     model = state.LLM.model_name()
-
-    breakpoint()
 
     # id of the chat request
     idStr = tools.create_idStr("embedding")

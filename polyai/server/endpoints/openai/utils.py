@@ -6,9 +6,6 @@ def make_response_dict(idstr : str, object : str, model : str, dt : int,
     
     """ Construct and return an OPENAI like response dict for json payload. """
     
-    if len(ner) == 0 and len(choices) == 0:
-        raise ValueError("Either ner or choices need to be provided")
-    
     # set indices
     for i, ch in enumerate(choices):
         choices[i]['index'] = i
