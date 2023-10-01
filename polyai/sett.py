@@ -42,7 +42,7 @@ class server:
     max_content_len : int = 10000
     use_ssl : bool = False
     listen_all : bool = False       # listen to 0.0.0.0
-    log_level : int = 8
+    log_level : int = 6
     debug : bool = False
     log_file_name : str = "polyai.log"
     log_append : bool = False
