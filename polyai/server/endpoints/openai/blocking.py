@@ -156,6 +156,7 @@ def response_for_json(js : dict):
     # Check types
     validate('temperature', float, js)
     validate('max_tokens', int, js)
+    validate('max_length', int, js)
     validate('min_tokens', int, js)
     validate('prompt', str, js)
     validate('top_p', float, js)
@@ -164,8 +165,11 @@ def response_for_json(js : dict):
     # Parse the json request
     messages = js.get("messages")
     prompt = js.get("prompt")
-    max_tokens = js.get('max_tokens') or sett.TextGen.context_length
-    
+
+    max_tokens = js.get('max_length')
+    if max_tokens is None:
+        max_tokens = js.get('max_tokens') or sett.TextGen.context_length
+
     # If a prompt is given, ignore the messages
     if prompt:
         if 'assistant:' in prompt.lower():
@@ -221,8 +225,11 @@ def response_for_json(js : dict):
     if len(inputs) > sett.TextGen.context_length:
         abort(400, "max request tokens length exceeded")
 
-    if max_tokens >= len(inputs) + sett.TextGen.context_length:
-        js['max_tokens'] = sett.TextGen.context_length - len(inputs)
+    if len(inputs) + max_tokens >= sett.TextGen.context_length:
+        js['max_tokens'] = sett.TextGen.context_length - len(inputs) - 1
+        js['max_new_tokens'] = js['max_tokens']
+        log.warn("Set allowed max_tokens from {} to {}",
+                 max_tokens, js.get('max_tokens'))
 
     try:
         response = state.LLM.generate(message, js)
