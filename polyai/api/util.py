@@ -28,7 +28,7 @@ def create_ssh_tunnel():
     Returns:
         SSHTunnelForwarder instance.
     """
-    from polyai import sett
+    import polyai.sett as sett
     from sshtunnel import SSHTunnelForwarder
 
     host = sett.API.ssh_tunnel_host
