@@ -155,7 +155,8 @@ async def _run(host: str, port: int,
         secure = False
 
     protocol = 'wss' if secure else 'ws'
-    log.info(f'Running streaming server at {protocol}://{host}:{port}{PATH}')
+    log.info(f'Running TextGen streaming server at '
+             f'{protocol}://{host}:{port}{PATH}')
 
     if secure:
         import ssl
