@@ -173,7 +173,8 @@ async def _run(host: str, port: int,
 def _run_server(port, listen, cert_file, key_file):
     address = '0.0.0.0' if listen else '127.0.0.1'
     try:
-        asyncio.run(_run(host=address, port=port))
+        asyncio.run(_run(host=address, port=port,
+                         cert_file=cert_file, key_file=key_file))
     except Exception as err:
         print("Failed to start streaming server.")
         print(err)
