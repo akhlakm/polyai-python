@@ -28,6 +28,10 @@ Model = models()
 class api_config:
     polyai_api_key : str = "pl-test"
     polyai_api_base : str = "http://localhost:8001/polyai/"
+    ssh_tunnel_host : str = None
+    ssh_tunnel_user : str = None
+    ssh_tunnel_port : int = 22
+    ssh_tunnel_pass : str = None
 
 API = api_config()
 
@@ -86,7 +90,7 @@ def _load_settings(settings_yaml: str = 'settings.yaml') -> bool:
     try:
         with open(settings_yaml) as fp:
             _yaml = yaml.safe_load(fp)
-            print("Load OK:", settings_yaml)
+            # print("Load OK:", settings_yaml)
     except: return False
     
     for section in _sections:
@@ -105,7 +109,7 @@ def _save_settings(settings_yaml: str = 'settings.yaml'):
 
     with open(settings_yaml, 'w') as fp:
         yaml.safe_dump(d, fp, sort_keys=False, indent=4)
-        print("Save OK:", settings_yaml)
+        # print("Save OK:", settings_yaml)
 
 
 def load_api_settings(settings_yaml: str = 'settings.yaml') -> bool:
