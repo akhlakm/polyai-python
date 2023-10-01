@@ -1,7 +1,7 @@
 import os
 import polyai.api
-
 from urllib.parse import urlparse
+
 
 def default_api_key() -> str:
     if polyai.api.api_key_path:
@@ -16,7 +16,6 @@ def default_api_key() -> str:
         raise polyai.api.error.AuthenticationError(
             "No API key provided. You can set your API key in code using 'polyai.api_key = <API-KEY>', or you can set the environment variable POLYAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the polyai module at it with 'polyai.api_key_path = <PATH>'."
         )
-
 
 
 def create_ssh_tunnel():

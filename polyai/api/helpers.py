@@ -43,6 +43,10 @@ def model_ner(respObj):
     """ Extract the NER tag list from the response json. """
     return respObj['ner_tags']
 
+def embeddings(respObj):
+    """ Extract the NER tag list from the response json. """
+    return respObj['embeddings']
+
 def generation_time(repsObj):
     """ Return the generation time in miliseconds. """
     return repsObj['elapsed_msec']
