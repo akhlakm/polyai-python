@@ -14,6 +14,9 @@ def parse_arguments():
     
     parser.add_argument("cmd", choices=['server', 'examples'])
     parser.add_argument(
+        "settings", default="settings.yaml",
+        help="Settings file to load/save (default settings.yaml).")
+    parser.add_argument(
         "--model", default=None,
         help="LLM model safetensors or pt to load")
     parser.add_argument(
@@ -73,13 +76,13 @@ def server():
 
 
 def main() -> int:
-    if not sett.load_server_settings():
-        sett.save_server_settings()
+    args = parse_arguments()
+    if not sett.load_server_settings(args.settings):
+        sett.save_server_settings(args.settings)
         print("Please update the new settings file and retry.")
         return 1
     
-    args = parse_arguments()
-    sett.save_server_settings()
+    sett.save_server_settings(args.settings)
 
     # Override settings from args.
     if args.log is not None:
