@@ -6,16 +6,24 @@ with two-shot learning.
 
 """
 
-from dotenv import load_dotenv
-from polyai.api.util import create_ssh_tunnel
 from polyai.api.helpers import (
     generation_time, tok_per_sec,
     instruct_prompt, model_reply
 )
 
-# Load the env variables.
-load_dotenv()
-create_ssh_tunnel()
+import polyai.api as polyai
+import polyai.sett as sett
+
+try:
+    sett.load_api_settings()
+except:
+    pass
+sett.save_api_settings()
+
+polyai.create_ssh_tunnel()  # if needed
+
+polyai.api_key = sett.API.polyai_api_key
+polyai.api_base = sett.API.polyai_api_base
 
 print("Sending api request.")
 resp, ptok, ctok, req = instruct_prompt(

@@ -1,4 +1,3 @@
-import os
 import polyai.api
 from urllib.parse import urlparse
 

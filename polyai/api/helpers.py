@@ -14,8 +14,6 @@ def instruct_prompt(model, instruction, prompt, shots = [], **kwargs):
         The request dict.
     """
 
-    polyai.api.api_key = os.getenv("POLYAI_API_KEY")
-    
     # Construct the instruct payload with optional shots
     # No of shots = len(payload) - 2
     payload = [ {"role": "system", "content": instruction} ]
