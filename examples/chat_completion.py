@@ -6,14 +6,18 @@ The implementation is same as openai.
 """
 
 import polyai.api as polyai
+import polyai.sett as sett
 
-import os
-from dotenv import load_dotenv
+try:
+    sett.load_api_settings()
+except:
+    pass
+sett.save_api_settings()
 
-load_dotenv()       # load env variables
 polyai.create_ssh_tunnel()  # if needed
 
-polyai.api_key = os.environ.get("POLYAI_API_KEY")
+polyai.api_key = sett.API.polyai_api_key
+polyai.api_base = sett.API.polyai_api_base
 
 resp = polyai.ChatCompletion.create(
     model="polyai", # currently ignored by the server.
