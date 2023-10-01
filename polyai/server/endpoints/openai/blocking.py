@@ -72,6 +72,51 @@ def bert_ner():
     return resp
 
 
+@bp.route('/text/embedding', methods = ['POST'])
+def text_embeddings():
+    """
+    Handle Embedding requests. Must be a post method.
+    
+    """
+    apiKey = request.headers.get("Api-Key", None)
+
+    if request.is_json:
+        js = request.get_json()
+        text = js.get("text")
+    else:
+        text = request.get_data(as_text=True)
+        if not text:
+            abort(400, "no input received")
+
+    t2 = log.trace("Calculating text embeddings.")
+    inputs = state.LLM.encode(text)
+    p_tok = inputs.shape[-1]
+    dt = t2.elapsed()
+
+    c_tok = 0
+    model = state.LLM.model_name()
+
+    breakpoint()
+
+    # id of the chat request
+    idStr = tools.create_idStr("embedding")
+
+    # convert to openai like json format
+    payload = utils.make_response_dict(idStr, 'text.embedding', model, dt,
+                                       prompt_tok=p_tok, compl_tok=c_tok,
+                                       embeddings=inputs)
+
+    # http response
+    resp = make_response(jsonify(payload))
+
+    # Add the request info to database in the background
+    tools.store(text, payload, resp.headers, apiKey, request.url,
+                      request.method, request.headers)
+
+    # Respond
+    return resp
+
+
 @bp.route('/chat/completions', methods = ['POST'])
 def chat_completions():
     """

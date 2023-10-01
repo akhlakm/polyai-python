@@ -2,7 +2,7 @@ import time
 
 def make_response_dict(idstr : str, object : str, model : str, dt : int,
                prompt_tok : int, compl_tok : int, choices : list = [],
-               ner : list = []):
+               ner : list = [], embeddings : list = []):
     
     """ Construct and return an OPENAI like response dict for json payload. """
     
@@ -16,7 +16,7 @@ def make_response_dict(idstr : str, object : str, model : str, dt : int,
     for i, ch in enumerate(ner):
         ner[i]['index'] = i
 
-    return {
+    response = {
         'id': idstr,
         'object': object,
         'created': time.strftime("%a, %b %d %Y %X"),
@@ -28,8 +28,14 @@ def make_response_dict(idstr : str, object : str, model : str, dt : int,
         },
         'elapsed_msec': dt,
         'choices': choices,
-        'ner_tags': ner,
     }
+
+    if ner:
+        response['ner_tags'] = ner
+    if embeddings:
+        response['embeddings'] = embeddings
+
+    return response
 
 
 def make_choice_dict(response, finish_reason):
