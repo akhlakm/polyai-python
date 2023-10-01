@@ -5,8 +5,8 @@ Entry point for polyai server.
 import sys
 import argparse
 import pylogg as log
-
-from polyai import __version__, sett
+import polyai.sett as sett
+from polyai import __version__
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -77,10 +77,9 @@ def main() -> int:
         sett.save_server_settings()
         print("Please update the new settings file and retry.")
         return 1
-    else:
-        sett.save_server_settings()
     
     args = parse_arguments()
+    sett.save_server_settings()
 
     # Override settings from args.
     if args.log is not None:
