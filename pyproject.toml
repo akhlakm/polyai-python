@@ -38,8 +38,6 @@ server = [
     "pandas",
     "psycopg2-binary",
     "sshtunnel",
-    "python-dotenv",
-    "pyenv-encrypt",
     "safetensors",
     "datasets",
     "sentencepiece",
