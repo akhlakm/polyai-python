@@ -1,4 +1,5 @@
 import os
+from . import error
 from .chat_completion import Completion
 from .chat_completion import ChatCompletion
 from .bert_ner import BERTNER
