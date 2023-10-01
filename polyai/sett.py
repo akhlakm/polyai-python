@@ -39,6 +39,7 @@ API = api_config()
 class server:
     api_endpoint_port : int = 8001
     stream_endpoint_port : int = 8002
+    max_content_len : int = 10000
     use_ssl : bool = False
     listen_all : bool = False       # listen to 0.0.0.0
     log_level : int = 8
@@ -109,7 +110,7 @@ def _save_settings(settings_yaml: str = 'settings.yaml'):
 
     with open(settings_yaml, 'w') as fp:
         yaml.safe_dump(d, fp, sort_keys=False, indent=4)
-        # print("Save OK:", settings_yaml)
+        print("Save OK:", settings_yaml)
 
 
 def load_api_settings(settings_yaml: str = 'settings.yaml') -> bool:
