@@ -38,9 +38,6 @@ def create_ssh_tunnel():
 
     if host is None or usernm is None:
         print("Not creating SSH tunnel.")
-        print("To use SSH tunnel, make sure SSH_TUNNEL_HOST, "
-              "SSH_USERNAME and SSH_PASSWORD environment "
-              "variables are correctly defined and loaded.")
         return None
 
     # API endpoint
