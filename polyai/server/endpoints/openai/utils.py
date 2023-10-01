@@ -5,7 +5,11 @@ def make_response_dict(idstr : str, object : str, model : str, dt : int,
                ner : list = [], embeddings : list = []):
     
     """ Construct and return an OPENAI like response dict for json payload. """
-    
+
+    assert type(choices) == list
+    assert type(ner) == list
+    assert type(embeddings) == list
+
     # set indices
     for i, ch in enumerate(choices):
         choices[i]['index'] = i

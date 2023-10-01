@@ -89,7 +89,8 @@ def text_embeddings():
             abort(400, "no input received")
 
     t2 = log.trace("Calculating text embeddings.")
-    inputs = state.LLM.encode(text)[-1]
+    inputs = state.LLM.encode(text)
+    inputs = inputs[-1].tolist()
     p_tok = inputs.shape[-1]
     dt = t2.elapsed()
 
