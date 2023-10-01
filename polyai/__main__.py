@@ -14,7 +14,7 @@ def parse_arguments():
     
     parser.add_argument("cmd", choices=['server', 'examples'])
     parser.add_argument(
-        "settings", default="settings.yaml",
+        "-s", "--settings", default="settings.yaml",
         help="Settings file to load/save (default settings.yaml).")
     parser.add_argument(
         "--model", default=None,
