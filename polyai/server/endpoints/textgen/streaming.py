@@ -8,7 +8,7 @@ import pylogg
 import polyai.server.state as state
 
 # Set log prefix
-log = pylogg.New("api/v2/ws")
+log = pylogg.New("stream")
 
 PATH = '/api/v1/stream'
 
@@ -147,11 +147,11 @@ async def _run(host: str, port: int,
     secure = cert_file and key_file
 
     if secure and not os.path.isfile(cert_file):
-        log.err("Cerficate file does not exist: {}", cert_file)
+        log.error("Cerficate file does not exist: {}", cert_file)
         secure = False
 
     if secure and not os.path.isfile(cert_file):
-        log.err("Key file does not exist: {}", key_file)
+        log.error("Key file does not exist: {}", key_file)
         secure = False
 
     protocol = 'wss' if secure else 'ws'
@@ -178,10 +178,10 @@ def _run_server(port, listen, cert_file, key_file):
     except Exception as err:
         print("Failed to start streaming server.")
         print(err)
+        raise err
 
 
 def start_server(port: int, listen: bool = False,
-                 cert_file : str = "keys/ssl.crt",
-                 key_file : str = "keys/ssl.key"):
+                 cert_file : str = None, key_file : str = None):
     Thread(target=_run_server, args=[port, listen, cert_file, key_file],
            daemon=True).start()
