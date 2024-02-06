@@ -41,6 +41,21 @@ print(resp['choices'][0]['message']['content']) # response text
 
 See the [tests directory](/tests) for more example scripts.
 
+## Server Development
+```bash
+# Create/activate a conda environment. It may take a few minutes.
+source make.sh
+
+# Install the polyai server
+mk install
+
+# Run the server
+mk run
+
+# See all available options
+mk
+```
+
 ## Todos
 - [X] Move arguments parsing to the `__main__.py` file.
 - [X] Add textgen ui api endpoint as v2.

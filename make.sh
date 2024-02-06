@@ -1,4 +1,45 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#           ---   Makefile like bash script for development    ---
+#  --- Source this script in your terminal to set up the dev environment ---
+#      --- Execute the script to see a list of available commands ---
+# ------------------------------------------------------------------------------
+
+[[ -n $MKWD ]] || export MKWD=$(echo $(command cd $(dirname '$0'); pwd))
+CONDAENV=polyai
+
+## -----------------------------------------------------------------------------
+
+if [[ $(basename "${0}") != "make.sh" ]]; then
+    # Script sourced, load or create condaenv
+    if ! conda activate $CONDAENV; then
+        # Create a conda environment.
+        echo "Setting up $CONDAENV conda environment."
+        conda create -n $CONDAENV python=3.11 -c conda-forge || return 10
+        conda activate $CONDAENV || return 11
+
+        # Install packages.
+        conda install -c conda-forge cxx-compiler==1.5.2 cmake ffmpeg \
+                            openmpi-mpicxx fftw || return 12
+        conda install -c conda-forge cudatoolkit cudatoolkit-dev || return 13
+
+        if [[ -f requirements.txt ]]; then pip -v install -r requirements.txt; fi
+    fi
+
+    alias cdmk="cd $MKWD/"
+    alias mk="$MKWD/make.sh"
+    echo "Environment set up. You can now use 'mk' to execute this script."
+
+    return 0
+fi
+
+install() {
+    cd $MKWD
+    pip install .
+}
+
+run() {
+    
+}
 
 bump() {
     ## Bump the version number
@@ -19,16 +60,6 @@ tag() {
     version=$(sed -n 's/version = "\(.*\)"/\1/p' pyproject.toml)
     git tag v$version && git push origin v$version
 }
-
-venv() {
-    if conda info --envs | grep -q $(basename $PWD); then 
-        conda activate $(basename $PWD)
-    else
-        conda create -n $(basename $PWD) python=3.10 -c conda-forge
-        conda activate $(basename $PWD)
-    fi
-}
-
 
 docker-entry() {
     ## Function to be called from inside a docker container.
@@ -117,10 +148,29 @@ docker-shell() {
 }
 
 test() {
-    curl    -v --data @tests/request.json \
+    curl    -v --data @examples/request.json \
             --header "Content-Type: application/json" \
             http://localhost:8080/api/chat/completions
     echo 
 }
 
-"$@"
+## EXECUTE OR SHOW USAGE.
+## -----------------------------------------------------------------------------
+if [[ "$#" -lt 1 ]]; then
+    echo -e "\nUSAGE:  mk <command> [options ...]"
+    echo -e "\tSource this script to setup the terminal environment."
+    echo -e "\nAvailable commands:"
+    echo -e "------------------------------------------------------------------"
+    echo -e "    install      Install the polyai package."
+    echo
+    echo -e "    run          Run the server."
+    echo
+    echo -e "    bump         Bump the current package version."
+    echo
+    echo -e "    tag          Create a git tag and push to origin."
+    echo
+else
+    cd $MKWD && pwd
+    "$@"
+    cd $MKWD
+fi
